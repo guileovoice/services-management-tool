@@ -30,10 +30,10 @@ export default function CommandPalette() {
   }, [commandPaletteOpen])
 
   const actions = [
-    { id: 'new-booking', label: 'New Booking', icon: Calendar, action: () => router.push('/calendar?new=true') },
-    { id: 'add-customer', label: 'Add Customer', icon: User, action: () => router.push('/customers?new=true') },
-    { id: 'add-lead', label: 'Add Lead', icon: FileText, action: () => router.push('/leads?new=true') },
-    { id: 'block-time', label: 'Block Time', icon: Clock, action: () => router.push('/calendar?block=true') },
+    { type: 'action' as const, id: 'new-booking', label: 'New Booking', icon: Calendar, action: () => router.push('/calendar?new=true') },
+    { type: 'action' as const, id: 'add-customer', label: 'Add Customer', icon: User, action: () => router.push('/customers?new=true') },
+    { type: 'action' as const, id: 'add-lead', label: 'Add Lead', icon: FileText, action: () => router.push('/leads?new=true') },
+    { type: 'action' as const, id: 'block-time', label: 'Block Time', icon: Clock, action: () => router.push('/calendar?block=true') },
   ]
 
   const filteredBookings = todayBookings.filter(b => 
@@ -47,7 +47,7 @@ export default function CommandPalette() {
   ).slice(0, 5)
 
   const allItems = [
-    ...actions.map(a => ({ type: 'action' as const, ...a })),
+    ...actions,
     ...filteredBookings.map(b => ({ type: 'booking' as const, ...b })),
     ...filteredCustomers.map(c => ({ type: 'customer' as const, ...c })),
   ]

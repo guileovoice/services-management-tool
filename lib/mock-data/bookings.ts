@@ -63,13 +63,13 @@ export const bookings: Booking[] = [
   createBooking(6, 'Tyler Brooks', '+1 (718) 555-6789', 'tyler.b@email.com', 'staff-1', 'Marcus Silva', 'svc-1', "Men's Haircut", 45, 35, 0, 11, 0, 'COMPLETED', 'WEB'),
   createBooking(7, 'Maya Rodriguez', '+1 (718) 555-7890', 'maya.r@email.com', 'staff-2', 'Jessica Park', 'svc-6', 'Full Color', 120, 120, 0, 11, 30, 'IN_PROGRESS', 'VOICE'),
   createBooking(8, 'David Kim', '+1 (718) 555-8901', 'david.k@email.com', 'staff-5', 'Alex Rivera', 'svc-9', 'Beard Shape-Up', 30, 30, 0, 12, 0, 'COMPLETED', 'WALK_IN'),
-  createBooking(9, 'Emma Wilson', '+1 (718) 555-9012', 'emma.w@email.com', 'staff-3', 'Priya Sharma', 'svc-13', 'Classic Pedicure', 60, 45, 0, 13, 0, 'CONFIRMED', 'PHONE'),
+  createBooking(9, 'Emma Wilson', '+1 (718) 555-9012', 'emma.w@email.com', 'staff-3', 'Priya Sharma', 'svc-13', 'Classic Pedicure', 60, 45, 0, 13, 0, 'CONFIRMED', 'VOICE'),
   createBooking(10, 'Ryan O\'Brien', '+1 (718) 555-0123', 'ryan.o@email.com', 'staff-1', 'Marcus Silva', 'svc-8', 'Beard Trim', 20, 20, 0, 13, 30, 'CONFIRMED', 'WEB'),
   createBooking(11, 'Sarah Thompson', '+1 (718) 555-1111', 'sarah.t@email.com', 'staff-2', 'Jessica Park', 'svc-2', "Women's Cut + Style", 60, 65, 0, 14, 0, 'CONFIRMED', 'WHATSAPP'),
   createBooking(12, 'Lisa Chang', '+1 (718) 555-2222', 'lisa.c@email.com', 'staff-3', 'Priya Sharma', 'svc-11', 'Classic Manicure', 45, 35, 0, 14, 30, 'CONFIRMED', 'SMS'),
   createBooking(13, 'Mike Davis', '+1 (718) 555-3333', 'mike.d@email.com', 'staff-5', 'Alex Rivera', 'svc-1', "Men's Haircut", 45, 35, 0, 15, 0, 'CONFIRMED', 'VOICE'),
   createBooking(14, 'Jennifer Lee', '+1 (718) 555-4444', 'jennifer.l@email.com', 'staff-4', 'Devon Chase', 'svc-18', 'Silk Press', 90, 85, 0, 15, 30, 'PENDING', 'WEB'),
-  createBooking(15, 'Kevin Brown', '+1 (718) 555-5555', 'kevin.b@email.com', 'staff-1', 'Marcus Silva', 'svc-10', 'Hair + Beard Combo', 60, 55, 0, 16, 30, 'PENDING', 'PHONE'),
+  createBooking(15, 'Kevin Brown', '+1 (718) 555-5555', 'kevin.b@email.com', 'staff-1', 'Marcus Silva', 'svc-10', 'Hair + Beard Combo', 60, 55, 0, 16, 30, 'PENDING', 'VOICE'),
   createBooking(16, 'Nicole Martinez', '+1 (718) 555-6666', 'nicole.m@email.com', 'staff-2', 'Jessica Park', 'svc-7', 'Highlights', 150, 150, 0, 17, 0, 'PENDING', 'WHATSAPP'),
   
   // Tomorrow - May 20, 2026
@@ -78,7 +78,7 @@ export const bookings: Booking[] = [
   createBooking(19, 'Amanda Garcia', '+1 (718) 555-9999', 'amanda.g@email.com', 'staff-3', 'Priya Sharma', 'svc-12', 'Gel Manicure', 60, 50, 1, 11, 0, 'CONFIRMED', 'SMS'),
   createBooking(20, 'Brandon Scott', '+1 (718) 555-1212', 'brandon.s@email.com', 'staff-1', 'Marcus Silva', 'svc-1', "Men's Haircut", 45, 35, 1, 12, 0, 'CONFIRMED', 'WEB'),
   createBooking(21, 'Stephanie White', '+1 (718) 555-2323', 'stephanie.w@email.com', 'staff-4', 'Devon Chase', 'svc-2', "Women's Cut + Style", 60, 65, 1, 13, 0, 'CONFIRMED', 'VOICE'),
-  createBooking(22, 'Daniel Taylor', '+1 (718) 555-3434', 'daniel.t@email.com', 'staff-5', 'Alex Rivera', 'svc-9', 'Beard Shape-Up', 30, 30, 1, 14, 0, 'CONFIRMED', 'PHONE'),
+  createBooking(22, 'Daniel Taylor', '+1 (718) 555-3434', 'daniel.t@email.com', 'staff-5', 'Alex Rivera', 'svc-9', 'Beard Shape-Up', 30, 30, 1, 14, 0, 'CONFIRMED', 'VOICE'),
   
   // May 21
   createBooking(23, 'Megan Moore', '+1 (718) 555-4545', 'megan.m@email.com', 'staff-2', 'Jessica Park', 'svc-21', 'Root Touch-Up', 90, 80, 2, 10, 0, 'CONFIRMED', 'WHATSAPP'),
@@ -92,7 +92,7 @@ export const bookings: Booking[] = [
   createBooking(29, 'Lauren Walker', '+1 (718) 555-1010', 'lauren.w@email.com', 'staff-2', 'Jessica Park', 'svc-6', 'Full Color', 120, 120, 3, 12, 0, 'CONFIRMED', 'VOICE'),
   
   // May 23 (Saturday)
-  createBooking(30, 'Brian Hall', '+1 (718) 555-1111', 'brian.h@email.com', 'staff-5', 'Alex Rivera', 'svc-1', "Men's Haircut", 45, 35, 4, 9, 0, 'CONFIRMED', 'PHONE'),
+  createBooking(30, 'Brian Hall', '+1 (718) 555-1111', 'brian.h@email.com', 'staff-5', 'Alex Rivera', 'svc-1', "Men's Haircut", 45, 35, 4, 9, 0, 'CONFIRMED', 'VOICE'),
   createBooking(31, 'Kimberly Allen', '+1 (718) 555-2222', 'kimberly.a@email.com', 'staff-2', 'Jessica Park', 'svc-5', 'Balayage', 180, 200, 4, 10, 0, 'CONFIRMED', 'WEB'),
   createBooking(32, 'Eric Young', '+1 (718) 555-3333', 'eric.y@email.com', 'staff-1', 'Marcus Silva', 'svc-1', "Men's Haircut", 45, 35, 4, 13, 0, 'CONFIRMED', 'WALK_IN'),
   createBooking(33, 'Michelle King', '+1 (718) 555-4444', 'michelle.k@email.com', 'staff-3', 'Priya Sharma', 'svc-15', 'Acrylic Full Set', 90, 75, 4, 14, 0, 'CONFIRMED', 'WHATSAPP'),
@@ -104,13 +104,13 @@ export const bookings: Booking[] = [
   // Past bookings (completed)
   createBooking(36, 'Nathan Hill', '+1 (718) 555-7777', 'nathan.h@email.com', 'staff-1', 'Marcus Silva', 'svc-1', "Men's Haircut", 45, 35, -1, 10, 0, 'COMPLETED', 'WEB'),
   createBooking(37, 'Diana Scott', '+1 (718) 555-8888', 'diana.s@email.com', 'staff-2', 'Jessica Park', 'svc-2', "Women's Cut + Style", 60, 65, -1, 12, 0, 'COMPLETED', 'VOICE'),
-  createBooking(38, 'Aaron Green', '+1 (718) 555-9999', 'aaron.g@email.com', 'staff-5', 'Alex Rivera', 'svc-8', 'Beard Trim', 20, 20, -1, 14, 0, 'COMPLETED', 'PHONE'),
+  createBooking(38, 'Aaron Green', '+1 (718) 555-9999', 'aaron.g@email.com', 'staff-5', 'Alex Rivera', 'svc-8', 'Beard Trim', 20, 20, -1, 14, 0, 'COMPLETED', 'VOICE'),
   createBooking(39, 'Courtney Adams', '+1 (718) 555-0000', 'courtney.a@email.com', 'staff-3', 'Priya Sharma', 'svc-12', 'Gel Manicure', 60, 50, -1, 15, 0, 'COMPLETED', 'WHATSAPP'),
   createBooking(40, 'Derek Nelson', '+1 (718) 555-1112', 'derek.n@email.com', 'staff-1', 'Marcus Silva', 'svc-10', 'Hair + Beard Combo', 60, 55, -2, 11, 0, 'COMPLETED', 'WEB'),
   createBooking(41, 'Vanessa Carter', '+1 (718) 555-2223', 'vanessa.c@email.com', 'staff-4', 'Devon Chase', 'svc-3', 'Blowout', 45, 55, -2, 13, 0, 'COMPLETED', 'VOICE'),
   createBooking(42, 'Travis Mitchell', '+1 (718) 555-3334', 'travis.m@email.com', 'staff-5', 'Alex Rivera', 'svc-1', "Men's Haircut", 45, 35, -2, 15, 0, 'COMPLETED', 'WALK_IN'),
   createBooking(43, 'Emily Roberts', '+1 (718) 555-4445', 'emily.r@email.com', 'staff-2', 'Jessica Park', 'svc-7', 'Highlights', 150, 150, -3, 10, 0, 'COMPLETED', 'WEB'),
-  createBooking(44, 'Mark Turner', '+1 (718) 555-5556', 'mark.t@email.com', 'staff-1', 'Marcus Silva', 'svc-8', 'Beard Trim', 20, 20, -3, 12, 0, 'COMPLETED', 'PHONE'),
+  createBooking(44, 'Mark Turner', '+1 (718) 555-5556', 'mark.t@email.com', 'staff-1', 'Marcus Silva', 'svc-8', 'Beard Trim', 20, 20, -3, 12, 0, 'COMPLETED', 'VOICE'),
   createBooking(45, 'Jessica Phillips', '+1 (718) 555-6667', 'jessica.p@email.com', 'staff-3', 'Priya Sharma', 'svc-11', 'Classic Manicure', 45, 35, -3, 14, 0, 'CANCELLED', 'SMS'),
   createBooking(46, 'Steven Campbell', '+1 (718) 555-7778', 'steven.c@email.com', 'staff-5', 'Alex Rivera', 'svc-9', 'Beard Shape-Up', 30, 30, -4, 11, 0, 'COMPLETED', 'WEB'),
   createBooking(47, 'Angela Parker', '+1 (718) 555-8889', 'angela.p@email.com', 'staff-4', 'Devon Chase', 'svc-18', "Women's Cut + Style", 60, 65, -4, 15, 0, 'COMPLETED', 'VOICE'),
