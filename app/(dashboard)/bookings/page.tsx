@@ -1,25 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { Search, Filter, Download, ChevronLeft, ChevronRight } from 'lucide-react'
-import { bookings } from '@/lib/mock-data/bookings'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatDuration, getInitials, statusColors } from '@/lib/utils'
-
-const tabs = [
-  { label: 'Today', count: 18 },
-  { label: 'Upcoming', count: 24 },
-  { label: 'Past', count: 200 },
-  { label: 'All', count: 212 },
-]
 
 const statuses = ['All Status', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']
 
 const channels = ['All Channels', 'VOICE', 'WEB', 'WHATSAPP', 'SMS', 'WALK_IN']
 
 export default function BookingsPage() {
+  const { bookings, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
   const [activeTab, setActiveTab] = useState('Today')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [channelFilter, setChannelFilter] = useState('All Channels')
@@ -27,7 +26,7 @@ export default function BookingsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const perPage = 15
 
-  const filteredBookings = bookings.filter(b => {
+  const filteredBookings = [...bookings].filter(b => {
     if (statusFilter !== 'All Status' && b.status !== statusFilter) return false
     if (channelFilter !== 'All Channels' && b.channel !== channelFilter) return false
     if (searchQuery && !b.customerName.toLowerCase().includes(searchQuery.toLowerCase()) && !b.bookingRef.toLowerCase().includes(searchQuery.toLowerCase())) return false
@@ -40,6 +39,13 @@ export default function BookingsPage() {
   const completedCount = bookings.filter(b => b.status === 'COMPLETED').length
   const noShowCount = bookings.filter(b => b.status === 'NO_SHOW').length
   const cancelledCount = bookings.filter(b => b.status === 'CANCELLED').length
+
+  const tabs = [
+    { label: 'Today', count: bookings.filter(b => b.scheduledAt.startsWith(format(new Date(), 'yyyy-MM-dd'))).length },
+    { label: 'Upcoming', count: bookings.filter(b => new Date(b.scheduledAt) > new Date() && b.status !== 'CANCELLED').length },
+    { label: 'Past', count: bookings.filter(b => new Date(b.scheduledAt) < new Date()).length },
+    { label: 'All', count: bookings.length },
+  ]
 
   return (
     <div className="space-y-6">

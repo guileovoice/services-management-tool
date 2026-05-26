@@ -21,9 +21,7 @@ import {
   Lock,
 } from 'lucide-react'
 import { useCalendarStore } from '@/lib/stores/calendarStore'
-import { staff } from '@/lib/mock-data/staff'
-import { bookings as allBookings } from '@/lib/mock-data/bookings'
-import { services } from '@/lib/mock-data/services'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatTime, getInitials, statusColors, categoryColors } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
@@ -50,12 +48,18 @@ function getDayName(date: Date): string {
   return days[date.getDay()]
 }
 
-function isStaffWorking(staffMember: typeof staff[0], date: Date): boolean {
+function isStaffWorking(staffMember: { workingHours: Record<string, { open: string; close: string; closed: boolean }> }, date: Date): boolean {
   const dayName = getDayName(date)
   return !staffMember.workingHours[dayName]?.closed
 }
 
 export default function CalendarPage() {
+  const { staff, bookings: allBookings, services, updateBookingStatus, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
   const {
     selectedDate,
     view,
@@ -392,13 +396,27 @@ export default function CalendarPage() {
                 <div className="space-y-3">
                   {selectedBooking.status === 'CONFIRMED' && (
                     <>
-                      <button className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">
+                      <button
+                        onClick={() => { updateBookingStatus(selectedBooking.id, 'COMPLETED'); toast.success('Marked as complete'); clearBookingSelection() }}
+                        className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors"
+                      >
                         Mark Complete
                       </button>
-                      <button className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors">
+                      <button
+                        onClick={() => { updateBookingStatus(selectedBooking.id, 'NO_SHOW'); toast.success('Marked as no-show'); clearBookingSelection() }}
+                        className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors"
+                      >
                         Customer is a No-Show
                       </button>
                     </>
+                  )}
+                  {selectedBooking.status === 'IN_PROGRESS' && (
+                    <button
+                      onClick={() => { updateBookingStatus(selectedBooking.id, 'COMPLETED'); toast.success('Marked as complete'); clearBookingSelection() }}
+                      className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors"
+                    >
+                      Mark Complete
+                    </button>
                   )}
                   <button className="w-full py-3 border border-border hover:bg-surface2 text-text-primary font-medium rounded-lg transition-colors">
                     Reschedule
@@ -406,7 +424,10 @@ export default function CalendarPage() {
                   <button className="w-full py-3 border border-border hover:bg-surface2 text-text-primary font-medium rounded-lg transition-colors">
                     Send Reminder
                   </button>
-                  <button className="w-full py-3 text-danger hover:bg-danger/10 font-medium rounded-lg transition-colors border border-transparent">
+                  <button
+                    onClick={() => { updateBookingStatus(selectedBooking.id, 'CANCELLED'); toast.success('Booking cancelled'); clearBookingSelection() }}
+                    className="w-full py-3 text-danger hover:bg-danger/10 font-medium rounded-lg transition-colors border border-transparent"
+                  >
                     Cancel Booking
                   </button>
                 </div>

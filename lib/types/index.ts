@@ -60,6 +60,7 @@ export interface Service {
   isPopular: boolean
   requiresDeposit: boolean
   depositAmount?: number
+  imageUrl?: string | null
   color: string
 }
 
@@ -156,6 +157,57 @@ export interface CallLog {
   leadId?: string
   sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE'
   createdAt: string
+}
+
+export interface SMSConfig {
+  id: string
+  tenantId: string
+  accountSid: string
+  authToken: string
+  twilioNumber: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SMSMessage {
+  id: string
+  tenantId: string
+  phoneNumber: string
+  contactName?: string
+  direction: 'inbound' | 'outbound'
+  messageBody: string
+  status: 'queued' | 'sent' | 'delivered' | 'failed' | 'received'
+  twilioSid?: string
+  complianceAction?: 'STOP' | 'UNSUBSCRIBE' | 'START' | 'RESUME'
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WhatsAppConfig {
+  id: string
+  tenantId: string
+  phoneNumberId: string
+  accessToken: string
+  verifyToken: string
+  businessAccountId?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WhatsAppMessage {
+  id: string
+  tenantId: string
+  phoneNumber: string
+  contactName?: string
+  direction: 'inbound' | 'outbound'
+  messageBody: string
+  status: 'queued' | 'sent' | 'received' | 'failed'
+  metaWaId?: string
+  orderId?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface DashboardStats {

@@ -17,6 +17,8 @@ import {
   Funnel,
   LogOut,
   ChevronRight,
+  MessageSquare,
+  MessageCircle,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { staff } from '@/lib/mock-data/staff'
@@ -43,6 +45,8 @@ const navGroups = [
     label: 'Customers',
     items: [
       { label: 'Customers', icon: UserCircle, href: '/customers' },
+      { label: 'WhatsApp', icon: MessageCircle, href: '/whatsapp' },
+      { label: 'SMS', icon: MessageSquare, href: '/sms' },
       { label: 'Campaigns', icon: Megaphone, href: '/campaigns' },
       { label: 'Call Logs', icon: Phone, href: '/calls' },
     ],

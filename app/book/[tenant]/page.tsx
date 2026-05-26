@@ -1,13 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, addDays } from 'date-fns'
 import { Check, ChevronRight, Clock, User, Calendar, DollarSign, Scissors, Sparkles, ArrowRight, ExternalLink } from 'lucide-react'
-import { services } from '@/lib/mock-data/services'
-import { staff } from '@/lib/mock-data/staff'
-import { customers } from '@/lib/mock-data/customers'
 import { cn, formatCurrency, getInitials, formatDuration } from '@/lib/utils'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import toast from 'react-hot-toast'
 
 const steps = ['Service', 'Staff', 'Time', 'Confirm']
@@ -29,6 +27,12 @@ const categoryColors: Record<string, { bg: string; text: string }> = {
 }
 
 export default function PublicBookingPage() {
+  const { services, staff, addBooking, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
   const [step, setStep] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL')
   const [selectedService, setSelectedService] = useState<typeof services[0] | null>(null)
@@ -76,16 +80,43 @@ export default function PublicBookingPage() {
     setStep(3)
   }
 
-  const handleConfirm = () => {
-    if (!customerName || !customerPhone || !agreedToPolicy) {
+  const handleConfirm = async () => {
+    if (!customerName || !customerPhone || !agreedToPolicy || !selectedService || !selectedStaff || !selectedDate || !selectedTime) {
       toast.error('Please fill in all required fields')
       return
     }
-    
-    const ref = `STU-${String(Math.floor(Math.random() * 1000)).padStart(4, '0')}`
-    setBookingRef(ref)
-    setIsConfirmed(true)
-    toast.success('Booking confirmed!')
+
+    const parseTime = (timeStr: string) => {
+      const [h, m] = timeStr.match(/(\d+):(\d+)/)?.slice(1).map(Number) || [9, 0]
+      const isPM = timeStr.toLowerCase().includes('pm')
+      const hour = isPM && h < 12 ? h + 12 : h
+      return { hour, minute: m }
+    }
+    const { hour, minute } = parseTime(selectedTime)
+    const scheduledAt = new Date(selectedDate)
+    scheduledAt.setHours(hour, minute, 0, 0)
+    const endsAt = new Date(scheduledAt.getTime() + selectedService.durationMin * 60000)
+
+    const booking = await addBooking({
+      customerName,
+      customerPhone,
+      customerEmail,
+      staffId: selectedStaff.id,
+      staffName: selectedStaff.name,
+      serviceId: selectedService.id,
+      serviceName: selectedService.name,
+      serviceDurationMin: selectedService.durationMin,
+      servicePrice: selectedService.price,
+      scheduledAt: scheduledAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      channel: 'WEB',
+      notes,
+    })
+    if (booking) {
+      setBookingRef(booking.bookingRef)
+      setIsConfirmed(true)
+      toast.success('Booking confirmed!')
+    }
   }
 
   const resetBooking = () => {

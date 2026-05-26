@@ -1,25 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Phone, MessageSquare, Mail, Star, Clock, DollarSign, GripVertical, MoreHorizontal, X, ChevronRight } from 'lucide-react'
-import { leads } from '@/lib/mock-data/leads'
-import { services } from '@/lib/mock-data/services'
-import { staff } from '@/lib/mock-data/staff'
 import { cn, formatRelativeTime, getInitials } from '@/lib/utils'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import type { LeadStatus, LeadUrgency } from '@/lib/types'
 import { DndContext, closestCenter, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
 
-const leadStatuses: { label: string; value: LeadStatus; count: number }[] = [
-  { label: 'New', value: 'NEW', count: leads.filter(l => l.status === 'NEW').length },
-  { label: 'Contacted', value: 'CONTACTED', count: leads.filter(l => l.status === 'CONTACTED').length },
-  { label: 'Qualified', value: 'QUALIFIED', count: leads.filter(l => l.status === 'QUALIFIED').length },
-  { label: 'Booked', value: 'BOOKED', count: leads.filter(l => l.status === 'BOOKED').length },
-  { label: 'Lost', value: 'LOST', count: leads.filter(l => l.status === 'LOST').length },
-]
+const statuses: LeadStatus[] = ['NEW', 'CONTACTED', 'QUALIFIED', 'BOOKED', 'LOST']
+const statusLabels: Record<LeadStatus, string> = {
+  NEW: 'New', CONTACTED: 'Contacted', QUALIFIED: 'Qualified', BOOKED: 'Booked', LOST: 'Lost',
+}
 
 const urgencyColors: Record<LeadUrgency, string> = {
   HIGH: 'bg-red-500/15 text-red-400 border-red-500/30',
@@ -27,7 +22,7 @@ const urgencyColors: Record<LeadUrgency, string> = {
   LOW: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
 }
 
-function LeadCard({ lead, onClick }: { lead: typeof leads[0]; onClick: () => void }) {
+function LeadCard({ lead, onClick, services }: { lead: { id: string; name: string; phone: string; urgency: LeadUrgency; inquiryText: string; serviceInterest: string; channel: string; score: number }; onClick: () => void; services: { id: string; name: string; price: number }[] }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: lead.id })
   
   const style = {
@@ -115,9 +110,25 @@ function LeadCard({ lead, onClick }: { lead: typeof leads[0]; onClick: () => voi
 }
 
 export default function LeadsPage() {
-  const [localLeads, setLocalLeads] = useState(leads)
-  const [selectedLead, setSelectedLead] = useState<typeof leads[0] | null>(null)
+  const { leads: storeLeads, services, staff, updateLeadStatus, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
+  const [localLeads, setLocalLeads] = useState<typeof storeLeads>([])
+  const [selectedLead, setSelectedLead] = useState<typeof storeLeads[0] | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLocalLeads(storeLeads)
+  }, [storeLeads])
+
+  const leadStatuses = statuses.map(s => ({
+    label: statusLabels[s],
+    value: s,
+    count: localLeads.filter(l => l.status === s).length,
+  }))
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -145,12 +156,14 @@ export default function LeadsPage() {
     const overLead = localLeads.find(l => l.id === over.id)
 
     if (activeLead && overLead && activeLead.status !== overLead.status) {
+      const newStatus = overLead.status as LeadStatus
       setLocalLeads(prev => prev.map(lead => {
         if (lead.id === active.id) {
-          return { ...lead, status: overLead.status }
+          return { ...lead, status: newStatus }
         }
         return lead
       }))
+      updateLeadStatus(active.id, newStatus)
       toast.success(`Lead moved to ${overLead.status}`)
     }
 
@@ -235,6 +248,7 @@ export default function LeadsPage() {
                         >
                           <LeadCard
                             lead={lead}
+                            services={services}
                             onClick={() => setSelectedLead(lead)}
                           />
                         </motion.div>

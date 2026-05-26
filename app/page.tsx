@@ -4,12 +4,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Calendar, Clock, Star, MapPin, Phone, Mail, Check, Scissors, Palette, Sparkles, Heart } from 'lucide-react'
-import { services } from '@/lib/mock-data/services'
-import { staff } from '@/lib/mock-data/staff'
+import { useEffect } from 'react'
 import { cn, formatCurrency, formatDuration, getInitials } from '@/lib/utils'
 import { format, addDays } from 'date-fns'
+import { useStudioStore } from '@/lib/stores/studioStore'
+import toast from 'react-hot-toast'
 
 export default function HomePage() {
+  const { services, staff, addBooking, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
   
@@ -58,11 +65,40 @@ export default function HomePage() {
     setBookingStep(3)
   }
 
-  const handleConfirm = () => {
-    if (!customerName || !customerPhone) return
-    const ref = 'STU-' + String(Math.floor(Math.random() * 1000)).padStart(4, '0')
-    setBookingRef(ref)
-    setIsConfirmed(true)
+  const handleConfirm = async () => {
+    if (!customerName || !customerPhone || !selectedService || !selectedStaff || !selectedDate || !selectedTime) return
+    
+    const parseTime = (timeStr: string) => {
+      const [h, m] = timeStr.match(/(\d+):(\d+)/)?.slice(1).map(Number) || [9, 0]
+      const isPM = timeStr.toLowerCase().includes('pm')
+      const hour = isPM && h < 12 ? h + 12 : h
+      return { hour, minute: m }
+    }
+    const { hour, minute } = parseTime(selectedTime)
+    const scheduledAt = new Date(selectedDate)
+    scheduledAt.setHours(hour, minute, 0, 0)
+    const endsAt = new Date(scheduledAt.getTime() + selectedService.durationMin * 60000)
+
+    const booking = await addBooking({
+      customerName,
+      customerPhone,
+      customerEmail,
+      staffId: selectedStaff.id,
+      staffName: selectedStaff.name,
+      serviceId: selectedService.id,
+      serviceName: selectedService.name,
+      serviceDurationMin: selectedService.durationMin,
+      servicePrice: selectedService.price,
+      scheduledAt: scheduledAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      channel: 'WEB',
+    })
+    if (booking) {
+      setBookingRef(booking.bookingRef)
+      setIsConfirmed(true)
+    } else {
+      toast.error('Failed to create booking. Please try again.')
+    }
   }
 
   const resetBooking = () => {

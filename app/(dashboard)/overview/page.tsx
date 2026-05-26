@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   DollarSign,
@@ -15,82 +16,115 @@ import {
   Calendar,
 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
-import { dashboardStats, recentActivity, alerts } from '@/lib/mock-data/analytics'
-import { bookings } from '@/lib/mock-data/bookings'
-import { services } from '@/lib/mock-data/services'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { formatCurrency, formatRelativeTime, getInitials } from '@/lib/utils'
 import Link from 'next/link'
-import { format, parseISO } from 'date-fns'
-
-const stats = [
-  {
-    label: "Today's Revenue",
-    value: formatCurrency(dashboardStats.today.revenue),
-    change: '+14%',
-    trend: 'up',
-    icon: DollarSign,
-    color: 'emerald',
-  },
-  {
-    label: 'Bookings Today',
-    value: dashboardStats.today.bookings.toString(),
-    change: '+4%',
-    trend: 'up',
-    icon: CalendarCheck,
-    color: 'violet',
-  },
-  {
-    label: 'Staff Utilization',
-    value: `${dashboardStats.today.utilization}%`,
-    change: '+6%',
-    trend: 'up',
-    icon: Activity,
-    color: 'blue',
-  },
-  {
-    label: 'No-Shows Today',
-    value: dashboardStats.today.noShows.toString(),
-    change: '-50%',
-    trend: 'down',
-    icon: UserX,
-    color: 'orange',
-  },
-  {
-    label: 'New Leads',
-    value: '4',
-    change: '+100%',
-    trend: 'up',
-    icon: Funnel,
-    color: 'pink',
-  },
-  {
-    label: 'Missed Calls',
-    value: dashboardStats.today.missedCalls.toString(),
-    change: '-33%',
-    trend: 'down',
-    icon: PhoneMissed,
-    color: 'red',
-  },
-]
-
-const activityIcons: Record<string, React.ElementType> = {
-  phone: Phone,
-  check: CalendarCheck,
-  alert: UserX,
-  user: Activity,
-  calendar: CalendarCheck,
-  globe: Activity,
-  message: Funnel,
-}
+import { format, parseISO, isToday, subDays, startOfDay, endOfDay } from 'date-fns'
 
 export default function OverviewPage() {
-  const todayBookings = bookings
-    .filter(b => new Date(b.scheduledAt) >= new Date())
-    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-    .slice(0, 6)
+  const { bookings, services, staff, bootstrapData, isBootstrapped } = useStudioStore()
 
-  const topServices = [...dashboardStats.topServices].slice(0, 5)
-  const maxServiceCount = Math.max(...topServices.map(s => s.count))
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+
+  const todayBookings = useMemo(() => {
+    return bookings
+      .filter(b => b.scheduledAt.startsWith(todayStr))
+      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+      .slice(0, 6)
+  }, [bookings, todayStr])
+
+  const todayStats = useMemo(() => {
+    const todays = bookings.filter(b => b.scheduledAt.startsWith(todayStr))
+    const revenue = todays.reduce((sum, b) => sum + b.servicePrice, 0)
+    const noShows = todays.filter(b => b.status === 'NO_SHOW').length
+    const completed = todays.filter(b => b.status === 'COMPLETED').length
+    const utilization = staff.length > 0 ? Math.round((todays.length / (staff.length * 8)) * 100) : 0
+    return { bookings: todays.length, revenue, noShows, missedCalls: 2, utilization: Math.min(utilization, 100) }
+  }, [bookings, todayStr, staff])
+
+  const thisWeekBookings = useMemo(() => {
+    const weekAgo = subDays(new Date(), 7)
+    return bookings.filter(b => new Date(b.scheduledAt) >= weekAgo)
+  }, [bookings])
+
+  const topServices = useMemo(() => {
+    const counts: Record<string, { name: string; count: number; revenue: number }> = {}
+    thisWeekBookings.forEach(b => {
+      if (!counts[b.serviceId]) counts[b.serviceId] = { name: b.serviceName, count: 0, revenue: 0 }
+      counts[b.serviceId].count++
+      counts[b.serviceId].revenue += b.servicePrice
+    })
+    return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 5)
+  }, [thisWeekBookings])
+
+  const staffUtilization = useMemo(() => {
+    return staff.map(s => {
+      const staffBookings = thisWeekBookings.filter(b => b.staffId === s.id)
+      const possibleSlots = 40
+      const util = Math.min(Math.round((staffBookings.length / possibleSlots) * 100), 100)
+      return { name: s.name, utilization: util, bookings: staffBookings.length }
+    })
+  }, [staff, thisWeekBookings])
+
+  const revenueChart = useMemo(() => {
+    const data = []
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(new Date(), i)
+      const dateStr = format(date, 'yyyy-MM-dd')
+      const dayBookings = bookings.filter(b => b.scheduledAt.startsWith(dateStr))
+      const revenue = dayBookings.reduce((sum, b) => sum + b.servicePrice, 0)
+      data.push({ date: format(date, 'MMM d'), revenue, bookings: dayBookings.length })
+    }
+    return data
+  }, [bookings])
+
+  const stats = [
+    { label: "Today's Revenue", value: formatCurrency(todayStats.revenue), change: '+14%', trend: 'up', icon: DollarSign, color: 'emerald' },
+    { label: 'Bookings Today', value: todayStats.bookings.toString(), change: '+4%', trend: 'up', icon: CalendarCheck, color: 'violet' },
+    { label: 'Staff Utilization', value: `${todayStats.utilization}%`, change: '+6%', trend: 'up', icon: Activity, color: 'blue' },
+    { label: 'No-Shows Today', value: todayStats.noShows.toString(), change: '-50%', trend: 'down', icon: UserX, color: 'orange' },
+    { label: 'New Leads', value: '4', change: '+100%', trend: 'up', icon: Funnel, color: 'pink' },
+    { label: 'Missed Calls', value: todayStats.missedCalls.toString(), change: '-33%', trend: 'down', icon: PhoneMissed, color: 'red' },
+  ]
+
+  const maxServiceCount = Math.max(...topServices.map(s => s.count), 1)
+
+  const activityIcons: Record<string, React.ElementType> = {
+    phone: Phone,
+    check: CalendarCheck,
+    alert: UserX,
+    user: Activity,
+    calendar: CalendarCheck,
+    globe: Activity,
+    message: Funnel,
+  }
+
+  const recentActivity = useMemo(() => {
+    const sorted = [...bookings].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 8)
+    return sorted.map(b => ({
+      id: b.id,
+      type: b.status === 'COMPLETED' ? 'BOOKING_COMPLETED' : 'BOOKING_CREATED',
+      icon: b.channel === 'VOICE' ? 'phone' : b.channel === 'WHATSAPP' ? 'message' : 'globe',
+      text: `${b.customerName} — ${b.serviceName} with ${b.staffName}`,
+      timestamp: b.createdAt,
+    }))
+  }, [bookings])
+
+  const alerts = useMemo(() => {
+    const result = []
+    const heavyStaff = staff.filter(s => {
+      const todays = bookings.filter(b => b.staffId === s.id && b.scheduledAt.startsWith(todayStr))
+      return todays.length >= 4
+    })
+    heavyStaff.forEach(s => result.push({ id: s.id, text: `${s.name} has ${heavyStaff.filter(x => x.id === s.id).length} back-to-back bookings — no break scheduled`, type: 'warning' }))
+    const newLeads = bookings.filter(b => b.status === 'PENDING')
+    if (newLeads.length > 0) result.push({ id: 'leads', text: `${newLeads.length} booking${newLeads.length > 1 ? 's' : ''} haven't been confirmed`, type: 'info' })
+    return result.slice(0, 3)
+  }, [bookings, staff, todayStr])
 
   return (
     <div className="space-y-6">
@@ -145,7 +179,7 @@ export default function OverviewPage() {
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dashboardStats.revenueChart}>
+              <AreaChart data={revenueChart}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6C3CE1" stopOpacity={0.3}/>
@@ -191,7 +225,7 @@ export default function OverviewPage() {
           <p className="text-sm text-text-secondary mb-6">Today</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dashboardStats.staffUtilization} layout="vertical">
+              <BarChart data={staffUtilization} layout="vertical">
                 <XAxis type="number" domain={[0, 100]} stroke="#8B8BA0" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{
@@ -207,7 +241,7 @@ export default function OverviewPage() {
           </div>
           <div className="mt-4 flex items-center justify-between text-sm">
             <span className="text-text-secondary">Average</span>
-            <span className="font-semibold">{Math.round(dashboardStats.staffUtilization.reduce((a, b) => a + b.utilization, 0) / dashboardStats.staffUtilization.length)}%</span>
+            <span className="font-semibold">{Math.round(staffUtilization.reduce((a, b) => a + b.utilization, 0) / staffUtilization.length)}%</span>
           </div>
         </div>
       </div>

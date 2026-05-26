@@ -1,13 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Phone, MessageSquare, Clock, Filter, Download, Search, Play, FileAudio } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { cn, formatRelativeTime } from '@/lib/utils'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import type { Channel } from '@/lib/types'
 
-const calls = [
+interface CallEntry {
+  id: string; customerName: string; customerPhone: string; channel: string; duration: number; intent: string; outcome: string; sentiment: string; cost: number; createdAt: string; transcript: string
+}
+
+const mockCalls: CallEntry[] = [
   {
     id: 'call-1',
     customerName: 'Sofia Chen',
@@ -126,12 +131,22 @@ const channelIcons = {
 }
 
 export default function CallsPage() {
-  const [selectedCall, setSelectedCall] = useState<typeof calls[0] | null>(null)
+  const { callLogs, setCallLogs, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
+  const [selectedCall, setSelectedCall] = useState<CallEntry | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  const calls: CallEntry[] = callLogs.length > 0
+    ? callLogs.map(l => ({ ...l, customerName: '', customerPhone: '', outcome: '', cost: 0, transcript: '' }))
+    : mockCalls
+
   const filteredCalls = calls.filter(c => 
-    c.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.customerPhone.includes(searchQuery)
+    (c.customerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.customerPhone || '').includes(searchQuery)
   )
 
   const formatDuration = (seconds: number) => {

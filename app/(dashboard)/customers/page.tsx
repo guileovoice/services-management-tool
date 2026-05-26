@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Search, Download, Filter, ChevronRight, Phone, Mail, Calendar, Clock, AlertTriangle } from 'lucide-react'
-import { customers } from '@/lib/mock-data/customers'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatRelativeTime, getInitials } from '@/lib/utils'
 
 const segments = [
@@ -18,6 +18,12 @@ const segments = [
 ]
 
 export default function CustomersPage() {
+  const { customers, bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
   const [searchQuery, setSearchQuery] = useState('')
   const [activeSegment, setActiveSegment] = useState('All Customers')
 

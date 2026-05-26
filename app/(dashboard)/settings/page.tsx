@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Building2, Bot, Calendar, Bell, Users, CreditCard, AlertTriangle, Play, ChevronRight, X, Check, Upload, MapPin } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
+import { useStudioStore } from '@/lib/stores/studioStore'
 
 const tabs = [
   { id: 'business', label: 'Business Info', icon: Building2 },
@@ -22,6 +23,12 @@ const voices = [
 ]
 
 export default function SettingsPage() {
+  const { bootstrapData, isBootstrapped } = useStudioStore()
+
+  useEffect(() => {
+    if (!isBootstrapped) bootstrapData()
+  }, [isBootstrapped, bootstrapData])
+
   const [activeTab, setActiveTab] = useState('business')
   const [selectedVoice, setSelectedVoice] = useState('sofia')
 
