@@ -62,10 +62,10 @@ export default function WhatsAppPanel() {
   const checkMetaConfig = async () => {
     const { data } = await supabase
       .from('whatsapp_config')
-      .select('is_active')
+      .select('status')
       .eq('tenant_id', TENANT_ID)
-      .single()
-    setMetaConfigured(data?.is_active ?? false)
+      .maybeSingle()
+    setMetaConfigured(data ? data.status === 'active' : false)
   }
 
   const loadMessages = async () => {
@@ -74,7 +74,7 @@ export default function WhatsAppPanel() {
       .from('whatsapp_messages')
       .select('*')
       .eq('tenant_id', TENANT_ID)
-      .order('created_at', { ascending: false })
+      .order('timestamp', { ascending: false })
 
     if (data) {
       setMessages(data.map(toCamel))
@@ -122,57 +122,47 @@ export default function WhatsAppPanel() {
       direction: 'outbound',
       message_body: text,
       status: 'queued',
+      timestamp: new Date().toISOString(),
     })
 
     if (error) {
       setInputText(text)
       return
     }
-
-    if (!metaConfigured) {
-      const mockDelay = 4000 + Math.random() * 2000
-      setTimeout(async () => {
-        await supabase.from('whatsapp_messages').insert({
-          tenant_id: TENANT_ID,
-          phone_number: selectedContact.phoneNumber,
-          contact_name: selectedContact.contactName,
-          direction: 'inbound',
-          message_body: `Auto-reply: Hi there! Thanks for your WhatsApp message. This is an automated sandbox response.`,
-          status: 'received',
-        })
-      }, mockDelay)
-    }
   }
 
   const getContacts = (): Contact[] => {
     const grouped = new Map<string, WhatsAppMessage[]>()
-    for (const msg of messages) {
+    for (const msg of messages || []) {
       const key = msg.phoneNumber
+      if (!key) continue
       if (!grouped.has(key)) grouped.set(key, [])
       grouped.get(key)!.push(msg)
     }
 
     const contacts: Contact[] = []
-    for (const [phoneNumber, msgs] of grouped) {
-      const sorted = msgs.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
+    grouped.forEach((msgs, phoneNumber) => {
+      const sorted = [...msgs].sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA)
+      })
       contacts.push({
         phoneNumber,
-        contactName: sorted[0].contactName || phoneNumber,
+        contactName: sorted[0]?.contactName || phoneNumber,
         lastMessage: sorted[0],
-        messages: sorted.reverse(),
+        messages: [...sorted].reverse(),
         unread: sorted.filter(
           (m) => m.direction === 'inbound' && m.status === 'received'
         ).length,
       })
-    }
+    })
 
-    return contacts.sort(
-      (a, b) =>
-        new Date(b.lastMessage.createdAt).getTime() -
-        new Date(a.lastMessage.createdAt).getTime()
-    )
+    return contacts.sort((a, b) => {
+      const timeA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0
+      const timeB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0
+      return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA)
+    })
   }
 
   const contacts = getContacts()
@@ -261,15 +251,6 @@ export default function WhatsAppPanel() {
             })
           )}
         </div>
-
-        {!metaConfigured && (
-          <div className="p-2 bg-yellow-500/10 border-t border-yellow-500/20">
-            <div className="flex items-center gap-2 text-[10px] text-yellow-400">
-              <AlertTriangle size={10} />
-              Sandbox mode — mock replies enabled
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Chat Area */}
@@ -384,17 +365,6 @@ export default function WhatsAppPanel() {
             <p className="text-sm text-text-muted max-w-xs">
               Select a contact from the left to view and send WhatsApp messages.
             </p>
-            {!metaConfigured && (
-              <div className="mt-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl max-w-sm">
-                <div className="flex items-center gap-2 text-xs text-yellow-400 mb-1">
-                  <AlertTriangle size={12} />
-                  WhatsApp not configured
-                </div>
-                <p className="text-[10px] text-text-muted">
-                  Connect WhatsApp Meta API in Settings to send real messages. Sandbox mode uses mock auto-replies.
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -413,7 +383,7 @@ function toCamel(row: Record<string, unknown>): WhatsAppMessage {
     status: row.status as WhatsAppMessage['status'],
     metaWaId: row.meta_wa_id as string | undefined,
     orderId: row.order_id as string | undefined,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
+    createdAt: (row.timestamp || row.created_at) as string,
+    updatedAt: (row.timestamp || row.updated_at) as string,
   }
 }

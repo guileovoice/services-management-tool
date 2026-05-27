@@ -6,105 +6,12 @@ import { Phone, MessageSquare, Clock, Filter, Download, Search, Play, FileAudio 
 import { format, parseISO } from 'date-fns'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { useStudioStore } from '@/lib/stores/studioStore'
+import { supabase } from '@/lib/supabaseClient'
 import type { Channel } from '@/lib/types'
 
 interface CallEntry {
   id: string; customerName: string; customerPhone: string; channel: string; duration: number; intent: string; outcome: string; sentiment: string; cost: number; createdAt: string; transcript: string
 }
-
-const mockCalls: CallEntry[] = [
-  {
-    id: 'call-1',
-    customerName: 'Sofia Chen',
-    customerPhone: '+1 (718) 555-1234',
-    channel: 'VOICE' as Channel,
-    duration: 245,
-    intent: 'BOOKING',
-    outcome: 'Booked ✓',
-    sentiment: 'POSITIVE',
-    cost: 0.15,
-    createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    transcript: `AI: Hi, thanks for calling The Studio. How can I help you today?
-Customer: Hi, I'd like to book an appointment for a balayage.
-AI: Great choice! I have Jessica available on Friday at 2pm. Would that work for you?
-Customer: Yes, that sounds perfect. Can I also get a trim at the same time?
-AI: Unfortunately, a trim would be an additional 30 minutes. We can do a trim before the balayage starting at 11am. Would that work instead?
-Customer: Yes, let's do that. 11am Friday.
-AI: Perfect! I've booked you with Jessica for a trim at 11am and balayage at 12pm on Friday. You'll receive a confirmation shortly.`,
-  },
-  {
-    id: 'call-2',
-    customerName: 'James Williams',
-    customerPhone: '+1 (718) 555-2345',
-    channel: 'WHATSAPP' as Channel,
-    duration: 180,
-    intent: 'INQUIRY',
-    outcome: 'No action',
-    sentiment: 'NEUTRAL',
-    cost: 0.02,
-    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    transcript: `AI: Hi, thanks for messaging The Studio! How can I help you?
-Customer: What are your hours on Saturday?
-AI: We're open Saturday from 9am to 8pm. Can I help you book an appointment?
-Customer: Just checking. Thanks!`,
-  },
-  {
-    id: 'call-3',
-    customerName: 'Rachel Kim',
-    customerPhone: '+1 (718) 555-7777',
-    channel: 'VOICE' as Channel,
-    duration: 320,
-    intent: 'BOOKING',
-    outcome: 'Lead created',
-    sentiment: 'POSITIVE',
-    cost: 0.15,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    transcript: `AI: Hi, thanks for calling The Studio. How can I help you today?
-Customer: Hi, I saw your Instagram and I'm looking to book a balayage for my birthday. It's in 2 weeks. Do you have availability?
-AI: Congratulations on your upcoming birthday! Let me check our availability... I have Jessica available on Saturday the 24th at 2pm. Would that work for you?
-Customer: Yes, that sounds perfect!
-AI: Great! I'll create a lead for you and we'll follow up to confirm the booking. Can I get your email?
-Customer: Rachel.k@email.com
-AI: Perfect! I've recorded your interest. A team member will contact you within 24 hours to confirm your appointment. Happy early birthday!`,
-  },
-  {
-    id: 'call-4',
-    customerName: 'Carlos Mendez',
-    customerPhone: '+1 (718) 555-4567',
-    channel: 'VOICE' as Channel,
-    duration: 180,
-    intent: 'RESCHEDULE',
-    outcome: 'Rescheduled',
-    sentiment: 'NEUTRAL',
-    cost: 0.15,
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    transcript: `AI: Hi, thanks for calling The Studio. How can I help you today?
-Customer: I need to reschedule my appointment.
-AI: Of course. Can I have your name or booking reference?
-Customer: It's Carlos Mendez, I was supposed to come in tomorrow at 2.
-AI: I found your booking. What date and time would work better for you?
-Customer: Any afternoon next week would be fine.
-AI: I have Thursday at 3pm or Friday at 4pm available. Which works better?
-Customer: Let's do Thursday at 3pm.
-AI: Done! Your appointment is now Thursday at 3pm with Marcus for Men's Haircut. See you then!`,
-  },
-  {
-    id: 'call-5',
-    customerName: 'Tyler Brooks',
-    customerPhone: '+1 (718) 555-6789',
-    channel: 'SMS' as Channel,
-    duration: 60,
-    intent: 'CANCEL',
-    outcome: 'Cancelled',
-    sentiment: 'NEGATIVE',
-    cost: 0.01,
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    transcript: `Customer: Need to cancel my appointment tomorrow
-AI: I understand. I can help you cancel. Your appointment tomorrow at 11am with Marcus has been cancelled. No charges will apply. Would you like to rebook for another time?
-Customer: Maybe later. Thanks.
-AI: No problem! When you're ready to book again, just call or message us. Have a great day!`,
-  },
-]
 
 const intentColors = {
   BOOKING: 'bg-emerald-500/15 text-emerald-400',
@@ -131,18 +38,47 @@ const channelIcons = {
 }
 
 export default function CallsPage() {
-  const { callLogs, setCallLogs, bootstrapData, isBootstrapped } = useStudioStore()
+  const { bootstrapData, isBootstrapped } = useStudioStore()
+  const [dbCalls, setDbCalls] = useState<CallEntry[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!isBootstrapped) bootstrapData()
   }, [isBootstrapped, bootstrapData])
 
+  useEffect(() => {
+    async function fetchCalls() {
+      setLoading(true)
+      const { data } = await supabase
+        .from('vapi_call_logs')
+        .select('*')
+        .order('started_at', { ascending: false })
+      
+      if (data) {
+        const mapped: CallEntry[] = data.map((row, idx) => ({
+          id: row.id || `call-db-${idx}`,
+          customerName: row.customer_name || 'Guest User',
+          customerPhone: row.customer_phone || 'Unknown Phone',
+          channel: (row.type && row.type.includes('web') ? 'WEB' : 'VOICE') as Channel,
+          duration: row.duration_seconds || 0,
+          intent: (row.summary && row.summary.toUpperCase().includes('BOOK') ? 'BOOKING' : 'INQUIRY'),
+          outcome: (row.status === 'assistant-ended-call' ? 'Handled by AI' : 'Failed'),
+          sentiment: 'NEUTRAL',
+          cost: row.cost_usd || 0,
+          createdAt: row.started_at || row.created_at,
+          transcript: row.transcript || ''
+        }))
+        setDbCalls(mapped)
+      }
+      setLoading(false)
+    }
+    fetchCalls()
+  }, [])
+
   const [selectedCall, setSelectedCall] = useState<CallEntry | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const calls: CallEntry[] = callLogs.length > 0
-    ? callLogs.map(l => ({ ...l, customerName: '', customerPhone: '', outcome: '', cost: 0, transcript: '' }))
-    : mockCalls
+  const calls = dbCalls
 
   const filteredCalls = calls.filter(c => 
     (c.customerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -218,9 +154,28 @@ export default function CallsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filteredCalls.map((call, i) => {
-              const ChannelIcon = channelIcons[call.channel] || Phone
-              const sent = sentimentIcons[call.sentiment as keyof typeof sentimentIcons]
+            {loading ? (
+              <tr>
+                <td colSpan={9} className="py-8 text-center text-text-muted">
+                  <div className="flex justify-center items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-primary" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Loading call logs from Supabase...
+                  </div>
+                </td>
+              </tr>
+            ) : filteredCalls.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="py-8 text-center text-text-muted">
+                  No call logs found in Supabase.
+                </td>
+              </tr>
+            ) : (
+              filteredCalls.map((call, i) => {
+                const ChannelIcon = channelIcons[call.channel] || Phone
+                const sent = sentimentIcons[call.sentiment as keyof typeof sentimentIcons]
               return (
                 <motion.tr
                   key={call.id}
@@ -269,7 +224,8 @@ export default function CallsPage() {
                   </td>
                 </motion.tr>
               )
-            })}
+            })
+          )}
           </tbody>
         </table>
       </div>

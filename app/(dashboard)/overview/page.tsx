@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   DollarSign,
@@ -17,16 +17,31 @@ import {
 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { useStudioStore } from '@/lib/stores/studioStore'
+import { supabase } from '@/lib/supabaseClient'
 import { formatCurrency, formatRelativeTime, getInitials } from '@/lib/utils'
 import Link from 'next/link'
 import { format, parseISO, isToday, subDays, startOfDay, endOfDay } from 'date-fns'
 
 export default function OverviewPage() {
-  const { bookings, services, staff, bootstrapData, isBootstrapped } = useStudioStore()
+  const { bookings, services, staff, leads, bootstrapData, isBootstrapped } = useStudioStore()
+  const [missedCallsCount, setMissedCallsCount] = useState(0)
 
   useEffect(() => {
     if (!isBootstrapped) bootstrapData()
   }, [isBootstrapped, bootstrapData])
+
+  useEffect(() => {
+    async function fetchMissedCalls() {
+      const { data } = await supabase
+        .from('vapi_call_logs')
+        .select('status')
+        .neq('status', 'assistant-ended-call')
+      if (data) {
+        setMissedCallsCount(data.length)
+      }
+    }
+    fetchMissedCalls()
+  }, [])
 
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
@@ -87,8 +102,8 @@ export default function OverviewPage() {
     { label: 'Bookings Today', value: todayStats.bookings.toString(), change: '+4%', trend: 'up', icon: CalendarCheck, color: 'violet' },
     { label: 'Staff Utilization', value: `${todayStats.utilization}%`, change: '+6%', trend: 'up', icon: Activity, color: 'blue' },
     { label: 'No-Shows Today', value: todayStats.noShows.toString(), change: '-50%', trend: 'down', icon: UserX, color: 'orange' },
-    { label: 'New Leads', value: '4', change: '+100%', trend: 'up', icon: Funnel, color: 'pink' },
-    { label: 'Missed Calls', value: todayStats.missedCalls.toString(), change: '-33%', trend: 'down', icon: PhoneMissed, color: 'red' },
+    { label: 'New Leads', value: (leads || []).filter(l => l.status === 'NEW').length.toString(), change: '+100%', trend: 'up', icon: Funnel, color: 'pink' },
+    { label: 'Missed Calls', value: missedCallsCount.toString(), change: '-33%', trend: 'down', icon: PhoneMissed, color: 'red' },
   ]
 
   const maxServiceCount = Math.max(...topServices.map(s => s.count), 1)

@@ -4,13 +4,11 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { ArrowLeft, Phone, Mail, Calendar, MessageSquare, Clock, User, DollarSign, Check } from 'lucide-react'
-import { bookings } from '@/lib/mock-data/bookings'
-import { customers } from '@/lib/mock-data/customers'
-import { staff as allStaff } from '@/lib/mock-data/staff'
-import { services } from '@/lib/mock-data/services'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatDuration, getInitials, statusColors } from '@/lib/utils'
 
 export default function BookingDetailPage() {
+  const { bookings, customers, staff: allStaff, services } = useStudioStore()
   const params = useParams()
   const router = useRouter()
   const booking = bookings.find(b => b.id === params.id)
@@ -104,7 +102,7 @@ export default function BookingDetailPage() {
                 <div className="mt-3 flex items-center gap-2">
                   <span className="text-xs text-text-muted">Consents:</span>
                   <span className="px-2 py-1 text-xs rounded-full bg-emerald-500/15 text-emerald-400">Essential ✓</span>
-                  {customer?.consents.marketing && <span className="px-2 py-1 text-xs rounded-full bg-blue-500/15 text-blue-400">Marketing ✓</span>}
+                  {customer?.consents?.marketing && <span className="px-2 py-1 text-xs rounded-full bg-blue-500/15 text-blue-400">Marketing ✓</span>}
                 </div>
               </div>
             </div>

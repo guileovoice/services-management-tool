@@ -4,9 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format, parseISO, addDays } from 'date-fns'
 import { ArrowLeft, Star, Calendar, DollarSign, Edit, ExternalLink, Check } from 'lucide-react'
-import { staff } from '@/lib/mock-data/staff'
-import { services } from '@/lib/mock-data/services'
-import { bookings } from '@/lib/mock-data/bookings'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatDuration, getInitials, statusColors } from '@/lib/utils'
 
 function getDayName(date: Date): string {
@@ -15,6 +13,7 @@ function getDayName(date: Date): string {
 }
 
 export default function StaffDetailPage() {
+  const { staff, services, bookings } = useStudioStore()
   const params = useParams()
   const router = useRouter()
   const member = staff.find(s => s.id === params.id)

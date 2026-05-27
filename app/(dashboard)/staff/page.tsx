@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Plus, Star, Calendar, DollarSign, MoreHorizontal, MapPin } from 'lucide-react'
-import { staff } from '@/lib/mock-data/staff'
-import { services } from '@/lib/mock-data/services'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, getInitials } from '@/lib/utils'
 
 export default function StaffPage() {
+  const { staff, services } = useStudioStore()
   const [showAddModal, setShowAddModal] = useState(false)
 
   return (

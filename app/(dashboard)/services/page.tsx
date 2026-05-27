@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Pencil, Trash2, Flame, Clock, DollarSign } from 'lucide-react'
-import { services } from '@/lib/mock-data/services'
-import { staff } from '@/lib/mock-data/staff'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatDuration, getInitials } from '@/lib/utils'
 import type { ServiceCategory } from '@/lib/types'
 
@@ -26,6 +25,7 @@ const categoryColors: Record<string, { bg: string; text: string }> = {
 }
 
 export default function ServicesPage() {
+  const { services, staff } = useStudioStore()
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | 'ALL'>('ALL')
   const [showAddModal, setShowAddModal] = useState(false)
 

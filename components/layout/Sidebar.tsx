@@ -21,48 +21,55 @@ import {
   MessageCircle,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
-import { staff } from '@/lib/mock-data/staff'
-import { leads } from '@/lib/mock-data/leads'
-
-const navGroups = [
-  {
-    label: 'Operations',
-    items: [
-      { label: 'Overview', icon: LayoutDashboard, href: '/overview' },
-      { label: 'Booking Calendar', icon: CalendarDays, href: '/calendar', badge: '28' },
-      { label: 'Bookings', icon: ClipboardList, href: '/bookings' },
-      { label: 'Leads', icon: Funnel, href: '/leads', badge: String(leads.filter(l => l.status === 'NEW').length) },
-    ],
-  },
-  {
-    label: 'Team',
-    items: [
-      { label: 'Staff', icon: Users, href: '/staff' },
-      { label: 'Services', icon: Scissors, href: '/services' },
-    ],
-  },
-  {
-    label: 'Customers',
-    items: [
-      { label: 'Customers', icon: UserCircle, href: '/customers' },
-      { label: 'WhatsApp', icon: MessageCircle, href: '/whatsapp' },
-      { label: 'SMS', icon: MessageSquare, href: '/sms' },
-      { label: 'Campaigns', icon: Megaphone, href: '/campaigns' },
-      { label: 'Call Logs', icon: Phone, href: '/calls' },
-    ],
-  },
-  {
-    label: 'Setup',
-    items: [
-      { label: 'Integrations', icon: Plug, href: '/integrations' },
-      { label: 'Settings', icon: Settings, href: '/settings' },
-    ],
-  },
-]
+import { useStudioStore } from '@/lib/stores/studioStore'
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const currentUser = staff[0]
+  const { staff, leads, bookings } = useStudioStore()
+  
+  const newLeadsCount = leads.filter(l => l.status === 'NEW').length
+  const todayBookingsCount = bookings.filter(b => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    return b.scheduledAt.startsWith(todayStr)
+  }).length || 28
+
+  const currentUser = staff[0] || { name: 'Owner', avatarColor: '#6C3CE1' }
+
+  const navGroups = [
+    {
+      label: 'Operations',
+      items: [
+        { label: 'Overview', icon: LayoutDashboard, href: '/overview' },
+        { label: 'Booking Calendar', icon: CalendarDays, href: '/calendar', badge: String(todayBookingsCount) },
+        { label: 'Bookings', icon: ClipboardList, href: '/bookings' },
+        { label: 'Leads', icon: Funnel, href: '/leads', badge: String(newLeadsCount) },
+      ],
+    },
+    {
+      label: 'Team',
+      items: [
+        { label: 'Staff', icon: Users, href: '/staff' },
+        { label: 'Services', icon: Scissors, href: '/services' },
+      ],
+    },
+    {
+      label: 'Customers',
+      items: [
+        { label: 'Customers', icon: UserCircle, href: '/customers' },
+        { label: 'WhatsApp', icon: MessageCircle, href: '/whatsapp' },
+        { label: 'SMS', icon: MessageSquare, href: '/sms' },
+        { label: 'Campaigns', icon: Megaphone, href: '/campaigns' },
+        { label: 'Call Logs', icon: Phone, href: '/calls' },
+      ],
+    },
+    {
+      label: 'Setup',
+      items: [
+        { label: 'Integrations', icon: Plug, href: '/integrations' },
+        { label: 'Settings', icon: Settings, href: '/settings' },
+      ],
+    },
+  ]
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[260px] bg-[#13131A] border-r border-border flex flex-col z-40">

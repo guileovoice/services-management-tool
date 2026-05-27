@@ -4,11 +4,11 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { ArrowLeft, Phone, Mail, Tag, Calendar, DollarSign, Star, MessageSquare, Check, X, AlertTriangle, Download, Trash2 } from 'lucide-react'
-import { customers } from '@/lib/mock-data/customers'
-import { bookings } from '@/lib/mock-data/bookings'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatRelativeTime, getInitials, statusColors } from '@/lib/utils'
 
 export default function CustomerDetailPage() {
+  const { customers, bookings } = useStudioStore()
   const params = useParams()
   const router = useRouter()
   const customer = customers.find(c => c.id === params.id)
@@ -164,7 +164,7 @@ export default function CustomerDetailPage() {
           </motion.div>
 
           {/* Call & Message Log */}
-          {customer.calls.length > 0 && (
+          {customer.calls && customer.calls.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

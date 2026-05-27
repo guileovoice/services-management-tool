@@ -64,10 +64,10 @@ export default function SMSPanel() {
   const checkTwilioConfig = async () => {
     const { data } = await supabase
       .from('sms_config')
-      .select('is_active')
+      .select('tenant_id')
       .eq('tenant_id', TENANT_ID)
-      .single()
-    setTwilioConfigured(data?.is_active ?? false)
+      .maybeSingle()
+    setTwilioConfigured(!!data)
   }
 
   const loadMessages = async () => {
@@ -124,57 +124,47 @@ export default function SMSPanel() {
       direction: 'outbound',
       message_body: text,
       status: 'queued',
+      created_at: new Date().toISOString(),
     })
 
     if (error) {
       setInputText(text)
       return
     }
-
-    if (!twilioConfigured) {
-      const mockDelay = 1000 + Math.random() * 500
-      setTimeout(async () => {
-        await supabase.from('sms_messages').insert({
-          tenant_id: TENANT_ID,
-          phone_number: selectedContact.phoneNumber,
-          contact_name: selectedContact.contactName,
-          direction: 'inbound',
-          message_body: `Auto-reply: Thanks for your message! This is a sandbox response (SMS).`,
-          status: 'received',
-        })
-      }, mockDelay)
-    }
   }
 
   const getContacts = (): Contact[] => {
     const grouped = new Map<string, SMSMessage[]>()
-    for (const msg of messages) {
+    for (const msg of messages || []) {
       const key = msg.phoneNumber
+      if (!key) continue
       if (!grouped.has(key)) grouped.set(key, [])
       grouped.get(key)!.push(msg)
     }
 
     const contacts: Contact[] = []
-    for (const [phoneNumber, msgs] of grouped) {
-      const sorted = msgs.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
+    grouped.forEach((msgs, phoneNumber) => {
+      const sorted = [...msgs].sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA)
+      })
       contacts.push({
         phoneNumber,
-        contactName: sorted[0].contactName || phoneNumber,
+        contactName: sorted[0]?.contactName || phoneNumber,
         lastMessage: sorted[0],
-        messages: sorted.reverse(),
+        messages: [...sorted].reverse(),
         unread: sorted.filter(
           (m) => m.direction === 'inbound' && m.status === 'received'
         ).length,
       })
-    }
+    })
 
-    return contacts.sort(
-      (a, b) =>
-        new Date(b.lastMessage.createdAt).getTime() -
-        new Date(a.lastMessage.createdAt).getTime()
-    )
+    return contacts.sort((a, b) => {
+      const timeA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0
+      const timeB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0
+      return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA)
+    })
   }
 
   const contacts = getContacts()
@@ -258,15 +248,6 @@ export default function SMSPanel() {
             })
           )}
         </div>
-
-        {!twilioConfigured && (
-          <div className="p-2 bg-yellow-500/10 border-t border-yellow-500/20">
-            <div className="flex items-center gap-2 text-[10px] text-yellow-400">
-              <AlertTriangle size={10} />
-              Sandbox mode — mock replies enabled
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Chat Area */}
@@ -379,17 +360,6 @@ export default function SMSPanel() {
             <p className="text-sm text-text-muted max-w-xs">
               Select a contact from the left to view and send SMS messages.
             </p>
-            {!twilioConfigured && (
-              <div className="mt-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl max-w-sm">
-                <div className="flex items-center gap-2 text-xs text-yellow-400 mb-1">
-                  <AlertTriangle size={12} />
-                  Twilio not configured
-                </div>
-                <p className="text-[10px] text-text-muted">
-                  Connect Twilio in Settings to send real SMS. Sandbox mode uses mock auto-replies.
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -409,6 +379,6 @@ function toCamel(row: Record<string, unknown>): SMSMessage {
     twilioSid: row.twilio_sid as string | undefined,
     complianceAction: row.compliance_action as SMSMessage['complianceAction'],
     createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
+    updatedAt: (row.updated_at || row.created_at) as string,
   }
 }

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar, CreditCard, Phone, Zap, Link2, Plus, Check, X, Settings } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
-import { staff } from '@/lib/mock-data/staff'
+import { useStudioStore } from '@/lib/stores/studioStore'
 
 const integrations = [
   {
@@ -70,6 +70,7 @@ const comingSoon = [
 ]
 
 export default function IntegrationsPage() {
+  const { staff } = useStudioStore()
   const [showManageModal, setShowManageModal] = useState<string | null>(null)
 
   const connectedIntegrations = integrations.filter(i => i.connected)

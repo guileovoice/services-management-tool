@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Calendar, User, Clock, ArrowRight, X, FileText } from 'lucide-react'
 import { useUIStore } from '@/lib/stores/uiStore'
-import { bookings } from '@/lib/mock-data/bookings'
-import { customers } from '@/lib/mock-data/customers'
-import { staff } from '@/lib/mock-data/staff'
+import { useStudioStore } from '@/lib/stores/studioStore'
 import { formatTime, formatDate } from '@/lib/utils'
 import { parseISO } from 'date-fns'
 
 export default function CommandPalette() {
+  const { bookings, customers, staff } = useStudioStore()
   const router = useRouter()
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore()
   const [query, setQuery] = useState('')
