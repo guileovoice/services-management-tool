@@ -215,18 +215,11 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-4">
                 <button
                   onClick={() => setShowBookingModal(true)}
-                  className="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl transition-colors flex items-center gap-2"
+                  className="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center gap-2"
                 >
                   <Calendar size={18} />
                   Book Appointment
                 </button>
-                <a
-                  href="tel:+17185554200"
-                  className="px-6 py-3 bg-surface hover:bg-surface2 border border-border font-medium rounded-xl transition-colors flex items-center gap-2"
-                >
-                  <Phone size={18} />
-                  (718) 555-4200
-                </a>
               </div>
 
               <div className="flex items-center gap-6 mt-8 pt-8 border-t border-border">
@@ -256,15 +249,15 @@ export default function HomePage() {
               transition={{ delay: 0.2 }}
               className="relative"
             >
-              <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden">
-                <div className="absolute inset-0 bg-surface/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <Scissors size={64} className="mx-auto mb-4 text-primary/50" />
-                    <p className="text-text-muted">Salon Interior</p>
-                  </div>
-                </div>
+              <div className="aspect-[4/5] rounded-2xl border border-border overflow-hidden shadow-2xl relative group">
+                <img 
+                  src="/salon_interior.png" 
+                  alt="Premium Salon Interior" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
               </div>
-              <div className="absolute -bottom-6 -left-6 bg-surface border border-border rounded-xl p-4 shadow-xl">
+              <div className="absolute -bottom-6 -left-6 bg-surface border border-border rounded-xl p-4 shadow-xl z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
                     <Calendar className="text-emerald-400" size={24} />

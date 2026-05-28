@@ -24,49 +24,11 @@ interface UIState {
   clearNotifications: () => void
 }
 
-const initialNotifications: Notification[] = [
-  {
-    id: '1',
-    title: 'Booking Cancelled',
-    message: "Marcus's 3pm appointment just cancelled",
-    timestamp: new Date(Date.now() - 15 * 60 * 1000),
-    read: false,
-  },
-  {
-    id: '2',
-    title: 'New Booking',
-    message: 'Voice booking — James Williams — Beard Trim',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000),
-    read: false,
-  },
-  {
-    id: '3',
-    title: 'Reminder Sent',
-    message: 'Reminder sent to Sofia Chen for tomorrow 2pm',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    read: false,
-  },
-  {
-    id: '4',
-    title: 'New Lead',
-    message: 'WhatsApp lead: Rachel Kim — balayage inquiry',
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    read: false,
-  },
-  {
-    id: '5',
-    title: 'Schedule Updated',
-    message: "Priya's schedule updated for Saturday",
-    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-    read: true,
-  },
-]
-
 export const useUIStore = create<UIState>((set) => ({
   sidebarOpen: true,
   commandPaletteOpen: false,
-  notifications: initialNotifications,
-  unreadCount: 4,
+  notifications: [],
+  unreadCount: 0,
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   

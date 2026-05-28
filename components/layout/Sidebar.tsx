@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -12,28 +12,48 @@ import {
   UserCircle,
   Megaphone,
   Phone,
-  Plug,
   Settings,
   Funnel,
   LogOut,
-  ChevronRight,
   MessageSquare,
   MessageCircle,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { useStudioStore } from '@/lib/stores/studioStore'
+import { supabaseAuth as supabase } from '@/lib/supabaseAuthClient'
+import { clearSessionMeta } from '@/lib/auth'
+import { useEffect, useState } from 'react'
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { staff, leads, bookings } = useStudioStore()
-  
+  const [sessionUser, setSessionUser] = useState<{ email?: string; name?: string } | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        setSessionUser({
+          email: data.user.email,
+          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+        })
+      }
+    })
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    clearSessionMeta()
+    router.replace('/login')
+  }
+
   const newLeadsCount = leads.filter(l => l.status === 'NEW').length
   const todayBookingsCount = bookings.filter(b => {
     const todayStr = new Date().toISOString().split('T')[0]
     return b.scheduledAt.startsWith(todayStr)
-  }).length || 28
+  }).length
 
-  const currentUser = staff[0] || { name: 'Owner', avatarColor: '#6C3CE1' }
+  const currentUser = { name: sessionUser?.name || 'Owner', avatarColor: '#6C3CE1' }
 
   const navGroups = [
     {
@@ -65,7 +85,6 @@ export default function Sidebar() {
     {
       label: 'Setup',
       items: [
-        { label: 'Integrations', icon: Plug, href: '/integrations' },
         { label: 'Settings', icon: Settings, href: '/settings' },
       ],
     },
@@ -162,7 +181,7 @@ export default function Sidebar() {
             <div className="text-sm font-medium truncate">{currentUser.name}</div>
             <div className="text-xs text-text-muted">Owner</div>
           </div>
-          <button className="p-1.5 hover:bg-surface rounded-lg transition-colors text-text-muted hover:text-text-primary">
+          <button onClick={handleLogout} className="p-1.5 hover:bg-surface rounded-lg transition-colors text-text-muted hover:text-text-primary">
             <LogOut size={16} />
           </button>
         </div>

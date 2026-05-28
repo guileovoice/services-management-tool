@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { Bell, Search, Plus, ChevronRight, Menu } from 'lucide-react'
-import { cn, formatRelativeTime } from '@/lib/utils'
+import { cn, formatRelativeTime, getInitials } from '@/lib/utils'
 import { useUIStore } from '@/lib/stores/uiStore'
 import { useCalendarStore } from '@/lib/stores/calendarStore'
 import { useRouter, usePathname } from 'next/navigation'
+import { supabaseAuth as supabase } from '@/lib/supabaseAuthClient'
+import { DateRangeFilter } from '@/components/shared/DateRangeFilter'
 
 const pageTitles: Record<string, string> = {
   '/overview': 'Overview',
@@ -29,6 +31,16 @@ export default function Topbar() {
   const { openNewBookingModal } = useCalendarStore()
   const [currentTime, setCurrentTime] = useState(new Date())
   const [showNotifications, setShowNotifications] = useState(false)
+  const [userInitials, setUserInitials] = useState('LC')
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.email) {
+        const name = data.user.user_metadata?.name || data.user.email.split('@')[0]
+        setUserInitials(getInitials(name))
+      }
+    })
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -43,6 +55,7 @@ export default function Topbar() {
         {/* Left */}
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold">{pageTitle}</h1>
+          <DateRangeFilter />
         </div>
 
         {/* Right */}
@@ -142,7 +155,7 @@ export default function Topbar() {
 
           {/* Avatar */}
           <button className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-medium text-sm">
-            LC
+            {userInitials}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabaseClient'
 import type { Booking, Customer, Lead, StaffMember, Service, CallLog, BookingStatus, LeadStatus } from '@/lib/types'
+import { format, parseISO, startOfDay } from 'date-fns'
 
 const TENANT_ID = '405b50b9-9504-4bda-bd38-7ce5b53e7aa0'
 
@@ -62,6 +63,7 @@ interface StudioState {
   setStaff: (staff: StaffMember[]) => void
   setServices: (services: Service[]) => void
   setCallLogs: (logs: CallLog[]) => void
+  retryBootstrap: () => void
 }
 
 export const useStudioStore = create<StudioState>((set, get) => ({
@@ -78,46 +80,73 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   bootstrapData: async () => {
     if (get().isBootstrapped) return
     set({ isLoading: true, error: null })
-    try {
-      const [
-        { data: bookingsData, error: bookingsError },
-        { data: customersData, error: customersError },
-        { data: leadsData, error: leadsError },
-        { data: staffData, error: staffError },
-        { data: servicesData, error: servicesError },
-      ] = await Promise.all([
-        supabase.from('bookings').select('*').eq('tenant_id', TENANT_ID),
-        supabase.from('customers').select('*').eq('business_id', TENANT_ID),
-        supabase.from('leads').select('*').eq('business_id', TENANT_ID),
-        supabase.from('staff').select('*').eq('business_id', TENANT_ID),
-        supabase.from('studio_services').select('*').eq('business_id', TENANT_ID),
-      ])
 
-      if (bookingsError) throw bookingsError
-      if (customersError) throw customersError
-      if (leadsError) throw leadsError
-      if (staffError) throw staffError
-      if (servicesError) throw servicesError
+    const tables = [
+      { key: 'bookings', promise: supabase.from('bookings').select('*').eq('tenant_id', TENANT_ID) },
+      { key: 'customers', promise: supabase.from('customers').select('*').eq('business_id', TENANT_ID) },
+      { key: 'leads', promise: supabase.from('leads').select('*').eq('business_id', TENANT_ID) },
+      { key: 'staff', promise: supabase.from('staff').select('*').eq('business_id', TENANT_ID) },
+      { key: 'services', promise: supabase.from('studio_services').select('*').eq('business_id', TENANT_ID) },
+    ] as const
 
-      set({
-        bookings: (bookingsData || []).map(r => toCamelCase<Booking>(r)),
-        customers: (customersData || []).map(r => toCamelCase<Customer>(r)),
-        leads: (leadsData || []).map(r => toCamelCase<Lead>(r)),
-        staff: (staffData || []).map(r => toCamelCase<StaffMember>(r)),
-        services: (servicesData || []).map(r => toCamelCase<Service>(r)),
-        isBootstrapped: true,
-        isLoading: false,
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load data'
-      set({ error: message, isLoading: false })
+    const raw: Record<string, unknown[]> = {}
+    const errs: string[] = []
+
+    for (const { key, promise } of tables) {
+      try {
+        const { data, error } = await promise
+        if (error) {
+          console.error(`[StudioStore] ${key}:`, error)
+          errs.push(`${key}: ${error.message}`)
+        } else {
+          console.log(`[StudioStore] ${key}: ${data?.length || 0} rows`)
+          raw[key] = data || []
+        }
+      } catch (ex) {
+        const msg = ex instanceof Error ? ex.message : String(ex)
+        console.error(`[StudioStore] ${key} exception:`, msg)
+        errs.push(`${key}: ${msg}`)
+      }
     }
+
+    const mapTo = <T>(rows: unknown[]) => rows.map(r => toCamelCase<T>(r as Record<string, unknown>))
+
+    set({
+      bookings: mapTo<Booking>(raw.bookings || []),
+      customers: mapTo<Customer>(raw.customers || []),
+      leads: mapTo<Lead>(raw.leads || []),
+      staff: mapTo<StaffMember>(raw.staff || []),
+      services: mapTo<Service>(raw.services || []),
+      isBootstrapped: true,
+      isLoading: false,
+      error: errs.length > 0 ? errs.join('; ') : null,
+    })
   },
 
   addBooking: async (data) => {
     try {
       const now = new Date().toISOString()
       const ref = 'STU-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0')
+
+      // 1. Lock yesterday and past dates
+      const bookingTime = new Date(data.scheduledAt)
+      const nowTime = new Date()
+      if (bookingTime.getTime() < nowTime.getTime()) {
+        throw new Error('Booking date and time cannot be in the past.')
+      }
+
+      // 2. Check for duplicate bookings (same stylist, same scheduled time slot)
+      const { data: duplicateBooking } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('staff_id', data.staffId)
+        .eq('scheduled_at', data.scheduledAt)
+        .neq('status', 'CANCELLED')
+        .maybeSingle()
+
+      if (duplicateBooking) {
+        throw new Error('This time slot is already booked for this stylist. Please choose another time or stylist.')
+      }
 
       const { data: existingCustomer } = await supabase
         .from('customers')
@@ -162,7 +191,37 @@ export const useStudioStore = create<StudioState>((set, get) => ({
 
       if (error) throw error
       const booking = toCamelCase<Booking>(newBooking)
+      
+      // Update local Zustand state
       set(state => ({ bookings: [...state.bookings, booking] }))
+
+      // 3. Create outbound SMS & WhatsApp messages confirming the booking details
+      const dateFormatted = format(parseISO(data.scheduledAt), 'EEEE, MMMM d, yyyy')
+      const timeFormatted = format(parseISO(data.scheduledAt), 'h:mm a')
+      const confirmationMsg = `Hi ${data.customerName}, your appointment for ${data.serviceName} with ${data.staffName} is confirmed for ${dateFormatted} at ${timeFormatted}. Ref: ${ref}.`
+
+      // Insert WhatsApp log
+      await supabase.from('whatsapp_messages').insert({
+        tenant_id: TENANT_ID,
+        phone_number: data.customerPhone,
+        contact_name: data.customerName,
+        direction: 'outbound',
+        message_body: confirmationMsg,
+        status: 'sent',
+        timestamp: now,
+      })
+
+      // Insert SMS log
+      await supabase.from('sms_messages').insert({
+        tenant_id: TENANT_ID,
+        phone_number: data.customerPhone,
+        contact_name: data.customerName,
+        direction: 'outbound',
+        message_body: confirmationMsg,
+        status: 'delivered',
+        created_at: now,
+      })
+
       return booking
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create booking'
@@ -278,4 +337,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setStaff: (staff) => set({ staff }),
   setServices: (services) => set({ services }),
   setCallLogs: (callLogs) => set({ callLogs }),
+  retryBootstrap: () => {
+    set({ isBootstrapped: false, error: null })
+    get().bootstrapData()
+  },
 }))

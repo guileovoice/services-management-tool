@@ -7,16 +7,6 @@ import { Search, Download, Filter, ChevronRight, Phone, Mail, Calendar, Clock, A
 import { useStudioStore } from '@/lib/stores/studioStore'
 import { cn, formatCurrency, formatRelativeTime, getInitials } from '@/lib/utils'
 
-const segments = [
-  { label: 'All Customers', count: 248 },
-  { label: 'Champions (18+ visits)', count: 34 },
-  { label: 'Loyal (8-17 visits)', count: 67 },
-  { label: 'Potential (3-7 visits)', count: 89 },
-  { label: 'New (1-2 visits)', count: 45 },
-  { label: 'At Risk (30d+)', count: 31 },
-  { label: 'Lost (90d+)', count: 12 },
-]
-
 export default function CustomersPage() {
   const { customers, bootstrapData, isBootstrapped } = useStudioStore()
 
@@ -26,6 +16,21 @@ export default function CustomersPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [activeSegment, setActiveSegment] = useState('All Customers')
+
+  const totalCustomers = customers.length
+  const activeCustomers = customers.filter(c => c.lastBookingAt && new Date(c.lastBookingAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
+  const atRiskCustomers = customers.filter(c => c.churnRisk === 'HIGH').length
+  const marketingConsent = customers.filter(c => c.consents.marketing).length
+
+  const segments = [
+    { label: 'All Customers', count: totalCustomers },
+    { label: 'Champions (18+ visits)', count: customers.filter(c => c.totalBookings >= 18).length },
+    { label: 'Loyal (8-17 visits)', count: customers.filter(c => c.totalBookings >= 8 && c.totalBookings < 18).length },
+    { label: 'Potential (3-7 visits)', count: customers.filter(c => c.totalBookings >= 3 && c.totalBookings < 8).length },
+    { label: 'New (1-2 visits)', count: customers.filter(c => c.totalBookings >= 1 && c.totalBookings < 3).length },
+    { label: 'At Risk (30d+)', count: atRiskCustomers },
+    { label: 'Lost (90d+)', count: customers.filter(c => c.totalBookings === 0 || (c.lastBookingAt && new Date(c.lastBookingAt) < new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))).length },
+  ]
 
   const filteredCustomers = customers.filter(c => {
     if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase()) && !c.phone.includes(searchQuery)) return false
@@ -38,7 +43,7 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="text-text-secondary">248 total customers</p>
+          <p className="text-text-secondary">{totalCustomers} total customers</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors">
           <Download size={16} />
@@ -49,19 +54,19 @@ export default function CustomersPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold">248</div>
+          <div className="text-2xl font-bold">{totalCustomers}</div>
           <div className="text-sm text-text-secondary">Total Customers</div>
         </div>
         <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-emerald-400">167</div>
+          <div className="text-2xl font-bold text-emerald-400">{activeCustomers}</div>
           <div className="text-sm text-text-secondary">Active (30d)</div>
         </div>
         <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-warning">31</div>
+          <div className="text-2xl font-bold text-warning">{atRiskCustomers}</div>
           <div className="text-sm text-text-secondary">At Risk</div>
         </div>
         <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-primary">194</div>
+          <div className="text-2xl font-bold text-primary">{marketingConsent}</div>
           <div className="text-sm text-text-secondary">Marketing Consent</div>
         </div>
       </div>
