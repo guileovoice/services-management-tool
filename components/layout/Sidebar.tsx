@@ -89,9 +89,10 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-5 border-b border-border">
         <Link href="/overview" className="flex items-center gap-3 group">
-          <div className="text-2xl font-bold text-primary">Guileo AI</div>
+          <img src="/favicon.svg" alt="Guileo" className="w-8 h-8 rounded-lg" />
+          <div className="text-xl font-bold text-text-primary group-hover:text-primary transition-colors">Guileo AI</div>
         </Link>
-        <p className="text-xs text-text-muted mt-1">for Services</p>
+        <p className="text-xs text-text-muted mt-1 ml-11">for Services</p>
       </div>
 
       {/* Tenant Info */}
