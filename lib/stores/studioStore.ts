@@ -207,7 +207,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
 
       if (error) throw error
       const booking = toCamelCase<Booking>(newBooking)
-      
+
       // Update local Zustand state
       set(state => ({ bookings: [...state.bookings, booking] }))
 
@@ -216,7 +216,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       const timeFormatted = format(parseISO(data.scheduledAt), 'h:mm a')
 
       const whatsappMsg =
-`✅ *Booking Confirmed!*
+        `✅ *Booking Confirmed!*
 
 Hi ${data.customerName}, your appointment is confirmed. Here are your details:
 
@@ -232,11 +232,11 @@ Hi ${data.customerName}, your appointment is confirmed. Here are your details:
 
 For changes or cancellations, please contact us at least 24 hours in advance. See you soon! 💈`
 
-      const dateShort    = format(parseISO(data.scheduledAt), 'M/d/yyyy')
-      const timePadded   = format(parseISO(data.scheduledAt), 'hh:mm a')
+      const dateShort = format(parseISO(data.scheduledAt), 'M/d/yyyy')
+      const timePadded = format(parseISO(data.scheduledAt), 'hh:mm a')
 
       const smsMsg =
-`Hello ${data.customerName} 👋
+        `Hello ${data.customerName} 👋
 Your appointment has been successfully confirmed! ✅
 
 📖 *Booking Ref:* ${ref}
