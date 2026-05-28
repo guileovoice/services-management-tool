@@ -72,9 +72,9 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-[260px]">
+      <div className="lg:ml-[260px] transition-all duration-300">
         <Topbar />
-        <main className="p-6">
+        <main className="p-4 sm:p-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

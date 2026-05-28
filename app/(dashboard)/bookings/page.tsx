@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameMonth, isSameDay, isToday, addMonths, subMonths, startOfWeek, endOfWeek,
@@ -18,6 +19,7 @@ const statuses = ['All Status', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'
 const channels = ['All Channels', 'VOICE', 'WEB', 'WHATSAPP', 'SMS', 'WALK_IN']
 
 export default function BookingsPage() {
+  const router = useRouter()
   const { bookings, bootstrapData, retryBootstrap, isBootstrapped, isLoading, error } = useStudioStore()
 
   useEffect(() => {
@@ -62,16 +64,16 @@ export default function BookingsPage() {
   const thisMonthBookings = bookings.filter(b => new Date(b.scheduledAt).getMonth() === new Date().getMonth()).length
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Bookings</h1>
-          <p className="text-text-secondary">Manage all your appointments</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Bookings</h1>
+          <p className="text-sm text-text-secondary">Manage all your appointments</p>
         </div>
         <Link
           href="/calendar"
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors w-full sm:w-auto justify-center"
         >
           <Plus size={16} />
           New Booking
@@ -79,27 +81,27 @@ export default function BookingsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold">{thisMonthBookings}</div>
-          <div className="text-sm text-text-secondary">Total this month</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold">{thisMonthBookings}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">Total this month</div>
         </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-emerald-400">{completedCount}</div>
-          <div className="text-sm text-text-secondary">Completed ({bookings.length > 0 ? Math.round(completedCount / bookings.length * 100) : 0}%)</div>
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold text-emerald-400">{completedCount}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">Completed ({bookings.length > 0 ? Math.round(completedCount / bookings.length * 100) : 0}%)</div>
         </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-orange-400">{noShowCount}</div>
-          <div className="text-sm text-text-secondary">No-shows ({bookings.length > 0 ? Math.round(noShowCount / bookings.length * 100) : 0}%)</div>
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold text-orange-400">{noShowCount}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">No-shows ({bookings.length > 0 ? Math.round(noShowCount / bookings.length * 100) : 0}%)</div>
         </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-danger">{cancelledCount}</div>
-          <div className="text-sm text-text-secondary">Cancellations ({bookings.length > 0 ? Math.round(cancelledCount / bookings.length * 100) : 0}%)</div>
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold text-danger">{cancelledCount}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">Cancellations ({bookings.length > 0 ? Math.round(cancelledCount / bookings.length * 100) : 0}%)</div>
         </div>
       </div>
 
       {/* Calendar Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex bg-surface rounded-lg p-1 border border-border">
             <button
@@ -110,7 +112,7 @@ export default function BookingsPage() {
               )}
             >
               <Calendar size={14} />
-              Calendar
+              <span className="hidden sm:inline">Calendar</span>
             </button>
             <button
               onClick={() => setViewMode('list')}
@@ -120,20 +122,20 @@ export default function BookingsPage() {
               )}
             >
               <List size={14} />
-              List
+              <span className="hidden sm:inline">List</span>
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
               className="p-2 rounded-lg hover:bg-surface transition-colors"
             >
               <ChevronLeft size={18} />
             </button>
-            <h2 className="text-lg font-semibold min-w-[160px] text-center">
+            <h2 className="text-sm sm:text-lg font-semibold min-w-[120px] sm:min-w-[160px] text-center">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <button
@@ -145,7 +147,7 @@ export default function BookingsPage() {
           </div>
           <button
             onClick={() => { setCurrentMonth(new Date()); setSelectedDay(new Date()) }}
-            className="px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface transition-colors"
+            className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium border border-border rounded-lg hover:bg-surface transition-colors"
           >
             Today
           </button>
@@ -219,19 +221,19 @@ export default function BookingsPage() {
 
       {/* List View */}
       {viewMode === 'list' && (
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          <table className="w-full">
+        <div className="bg-surface border border-border rounded-xl overflow-x-auto">
+          <table className="w-full min-w-[900px]">
             <thead className="bg-surface2">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Ref</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Service</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Staff</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Date & Time</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Price</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Channel</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Actions</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Ref</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Service</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Staff</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Date & Time</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Price</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Channel</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Status</th>
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -278,55 +280,56 @@ export default function BookingsPage() {
                   </td>
                 </tr>
               ) : null}
-              {!isLoading && !error && bookings.length > 0 && (viewMode === 'list' ? bookings : filteredBookings).map((booking, i) => (
+              {!isLoading && !error && bookings.length > 0 && bookings.map((booking, i) => (
                 <motion.tr
                   key={booking.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.02 }}
+                  onClick={() => router.push(`/bookings/${booking.id}`)}
                   className="hover:bg-surface2 transition-colors cursor-pointer"
                 >
-                  <td className="px-4 py-3 font-mono text-sm">
+                  <td className="px-3 sm:px-4 py-3 font-mono text-xs sm:text-sm">
                     <Link href={`/bookings/${booking.id}`} className="text-primary hover:underline">
                       {booking.bookingRef}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-medium">
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-medium">
                         {getInitials(booking.customerName)}
                       </div>
-                      <div>
-                        <div className="font-medium">{booking.customerName}</div>
-                        <div className="text-xs text-text-muted">{booking.customerPhone}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">{booking.customerName}</div>
+                        <div className="text-xs text-text-muted truncate">{booking.customerPhone}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{booking.serviceName}</div>
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="font-medium text-sm">{booking.serviceName}</div>
                     <div className="text-xs text-text-muted">{formatDuration(booking.serviceDurationMin)}</div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3 text-sm">
                     <div className="font-medium">{booking.staffName}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{format(parseISO(booking.scheduledAt), 'MMM d, yyyy')}</div>
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="font-medium text-sm">{format(parseISO(booking.scheduledAt), 'MMM d, yyyy')}</div>
                     <div className="text-xs text-text-muted">{format(parseISO(booking.scheduledAt), 'h:mm a')}</div>
                   </td>
-                  <td className="px-4 py-3 font-semibold">
+                  <td className="px-3 sm:px-4 py-3 font-semibold text-sm">
                     ${booking.servicePrice}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-surface2">
                       {booking.channel}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full border ${statusColors[booking.status]}`}>
                       {booking.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Link href={`/bookings/${booking.id}`} className="px-2 py-1 text-xs hover:bg-surface rounded transition-colors">
                         View
@@ -343,51 +346,51 @@ export default function BookingsPage() {
       {/* Selected Day Details */}
       {viewMode === 'calendar' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="text-base sm:text-lg font-semibold">
               {isSameDay(selectedDay, new Date()) ? "Today's" : format(selectedDay, 'EEEE, MMMM d')} Bookings
               <span className="text-text-secondary text-sm font-normal ml-2">({dayBookings.length})</span>
             </h3>
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="relative flex-1 sm:flex-none min-w-0">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   placeholder="Search day..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 text-sm bg-surface2 border border-border rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:border-primary w-48"
+                  className="pl-9 pr-3 py-1.5 text-sm bg-surface2 border border-border rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:border-primary w-full sm:w-48"
                 />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary"
+                className="px-3 py-1.5 text-xs sm:text-sm bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary"
               >
                 {statuses.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <select
                 value={channelFilter}
                 onChange={(e) => setChannelFilter(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary"
+                className="px-3 py-1.5 text-xs sm:text-sm bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary"
               >
                 {channels.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
 
-          <div className="bg-surface border border-border rounded-xl overflow-hidden">
-            <table className="w-full">
+          <div className="bg-surface border border-border rounded-xl overflow-x-auto">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-surface2">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Ref</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Service</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Staff</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Time</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Price</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Actions</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Ref</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Service</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Staff</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Time</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Price</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Status</th>
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -406,43 +409,44 @@ export default function BookingsPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.03 }}
+                      onClick={() => router.push(`/bookings/${booking.id}`)}
                       className="hover:bg-surface2 transition-colors cursor-pointer"
                     >
-                      <td className="px-4 py-3 font-mono text-sm">
+                      <td className="px-3 sm:px-4 py-3 font-mono text-xs sm:text-sm">
                         <Link href={`/bookings/${booking.id}`} className="text-primary hover:underline">
                           {booking.bookingRef}
                         </Link>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-medium">
+                      <td className="px-3 sm:px-4 py-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-medium">
                             {getInitials(booking.customerName)}
                           </div>
-                          <div>
-                            <div className="font-medium">{booking.customerName}</div>
-                            <div className="text-xs text-text-muted">{booking.customerPhone}</div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{booking.customerName}</div>
+                            <div className="text-xs text-text-muted truncate">{booking.customerPhone}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{booking.serviceName}</div>
+                      <td className="px-3 sm:px-4 py-3">
+                        <div className="font-medium text-sm">{booking.serviceName}</div>
                         <div className="text-xs text-text-muted">{formatDuration(booking.serviceDurationMin)}</div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3 text-sm">
                         <div className="font-medium">{booking.staffName}</div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3 text-sm">
                         <div className="font-medium">{format(parseISO(booking.scheduledAt), 'h:mm a')}</div>
                       </td>
-                      <td className="px-4 py-3 font-semibold">
+                      <td className="px-3 sm:px-4 py-3 font-semibold text-sm">
                         ${booking.servicePrice}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full border ${statusColors[booking.status]}`}>
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-3">
                         <Link href={`/bookings/${booking.id}`} className="px-2 py-1 text-xs hover:bg-surface rounded transition-colors">
                           View
                         </Link>

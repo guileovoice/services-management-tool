@@ -191,9 +191,9 @@ export default function OverviewPage() {
   }, [bookings, staff])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-danger/10 border border-danger/30">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl bg-danger/10 border border-danger/30">
           <div className="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center flex-shrink-0">
             <span className="text-danger font-bold text-sm">!</span>
           </div>
@@ -207,7 +207,7 @@ export default function OverviewPage() {
         </div>
       )}
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -216,11 +216,11 @@ export default function OverviewPage() {
             transition={{ delay: i * 0.1 }}
             className="bg-surface border border-border rounded-xl p-5 hover:scale-[1.01] hover:shadow-lg transition-all cursor-pointer"
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-${stat.color}/15`}>
-              <stat.icon className={`text-${stat.color}`} size={20} />
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 sm:mb-3 bg-${stat.color}/15`}>
+              <stat.icon className={`text-${stat.color}`} size={16} />
             </div>
-            <div className="text-2xl font-bold mb-1">{stat.value}</div>
-            <div className="text-sm text-text-secondary">{stat.label}</div>
+            <div className="text-xl sm:text-2xl font-bold mb-1">{stat.value}</div>
+            <div className="text-xs sm:text-sm text-text-secondary truncate">{stat.label}</div>
             <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${
               stat.trend === 'up' ? 'text-emerald-400' : 'text-emerald-400'
             }`}>

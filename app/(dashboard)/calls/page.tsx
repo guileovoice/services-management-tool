@@ -259,7 +259,7 @@ export default function CallsPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {error && (
         <div className="flex items-center gap-3 p-4 rounded-xl bg-danger/10 border border-danger/30">
           <div className="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center flex-shrink-0">
@@ -275,19 +275,19 @@ export default function CallsPage() {
         </div>
       )}
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">AI Call & Message Logs</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary">AI Call & Message Logs</h1>
           <p className="text-text-secondary">{todayStats.total} total today · {aiPercent}% handled by AI · {todayStats.bookingsCreated} bookings created</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors">
+        <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors">
           <Download size={16} />
           Export Logs
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-surface border border-border rounded-xl p-4">
           <div className="text-2xl font-bold text-text-primary">{todayStats.total}</div>
           <div className="text-sm text-text-secondary">Total Today</div>
@@ -307,7 +307,7 @@ export default function CallsPage() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
+      <div className="relative w-full sm:max-w-md">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
         <input
           type="text"
@@ -320,16 +320,17 @@ export default function CallsPage() {
 
       {/* Calls Table (Outcome and Sentiment columns removed) */}
       <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-md">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-surface2">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Channel</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Time</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Duration</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Intent</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Cost</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Actions</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Channel</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Time</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Duration</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Intent</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Cost</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -363,33 +364,33 @@ export default function CallsPage() {
                   className="hover:bg-surface2 transition-colors cursor-pointer"
                   onClick={() => setSelectedCall(call)}
                 >
-                  <td className="px-4 py-3">
-                    <div>
-                      <div className="font-semibold text-text-primary">{call.customerName}</div>
-                      <div className="text-xs text-text-muted">{call.customerPhone}</div>
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-text-primary truncate">{call.customerName}</div>
+                      <div className="text-xs text-text-muted truncate">{call.customerPhone}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <ChannelIcon size={14} className="text-text-muted" />
-                      <span className="text-sm text-text-secondary">{call.channel}</span>
+                      <ChannelIcon size={14} className="text-text-muted flex-shrink-0" />
+                      <span className="text-xs sm:text-sm text-text-secondary">{call.channel}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-text-secondary text-sm">
+                  <td className="px-3 sm:px-4 py-3 text-text-secondary text-xs sm:text-sm">
                     {formatRelativeTime(call.createdAt)}
                   </td>
-                  <td className="px-4 py-3 text-text-secondary text-sm">
+                  <td className="px-3 sm:px-4 py-3 text-text-secondary text-xs sm:text-sm">
                     {formatDuration(call.duration)}
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${intentColors[call.intent as keyof typeof intentColors]}`}>
+                  <td className="px-3 sm:px-4 py-3">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${intentColors[call.intent as keyof typeof intentColors]}`}>
                       {call.intent}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-text-muted text-sm">
+                  <td className="px-3 sm:px-4 py-3 text-text-muted text-xs sm:text-sm">
                     ${call.cost.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <button className="px-3 py-1.5 text-xs font-semibold bg-surface2 hover:bg-surface3 rounded-lg border border-border/40 transition-colors">
                       Transcript
                     </button>
@@ -400,6 +401,7 @@ export default function CallsPage() {
           )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Transcript Center Modal (Replaces Right-side Sheet) */}
@@ -433,7 +435,7 @@ export default function CallsPage() {
               </div>
 
               {/* Scrollable Modal Content */}
-              <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 flex-1">
                 {/* Call Info Profile Card */}
                 <div className="bg-surface2 border border-border/50 rounded-xl p-4">
                   <div className="flex items-center gap-4 mb-4">
@@ -448,7 +450,7 @@ export default function CallsPage() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-4 text-xs pt-3 border-t border-border/40">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs pt-3 border-t border-border/40">
                     <div>
                       <span className="text-text-muted block">Duration</span>
                       <div className="font-semibold text-text-primary mt-0.5">{formatDuration(selectedCall.duration)}</div>
@@ -468,7 +470,7 @@ export default function CallsPage() {
                 <CallAudioPlayer url={selectedCall.recordingUrl} duration={selectedCall.duration} />
 
                 {/* Analysis Indicators */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="bg-surface2 border border-border/50 rounded-xl p-4">
                     <span className="text-xs text-text-muted font-semibold uppercase tracking-wider block">Detected Intent</span>
                     <div className="font-bold text-text-primary mt-1 text-sm">{selectedCall.intent}</div>

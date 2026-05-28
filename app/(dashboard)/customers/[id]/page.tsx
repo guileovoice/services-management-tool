@@ -28,9 +28,9 @@ export default function CustomerDetailPage() {
   const totalRevenue = customerBookings.reduce((sum, b) => sum + b.servicePrice, 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <button onClick={() => router.push('/customers')} className="p-2 hover:bg-surface rounded-lg transition-colors">
           <ArrowLeft size={20} />
         </button>
@@ -39,14 +39,14 @@ export default function CustomerDetailPage() {
             {getInitials(customer.name)}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{customer.name}</h1>
-            <div className="flex items-center gap-4 text-text-secondary">
+            <h1 className="text-xl sm:text-2xl font-bold">{customer.name}</h1>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-4 text-text-secondary">
               <span className="flex items-center gap-1"><Phone size={14} /> {customer.phone}</span>
               {customer.email && <span className="flex items-center gap-1"><Mail size={14} /> {customer.email}</span>}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {customer.tags.map(tag => (
             <span key={tag} className="px-3 py-1 text-sm bg-surface2 rounded-full">{tag}</span>
           ))}
@@ -54,7 +54,7 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-surface border border-border rounded-xl p-4">
           <div className="text-2xl font-bold">{customer.totalBookings}</div>
           <div className="text-sm text-text-secondary">Total Visits</div>
@@ -77,16 +77,16 @@ export default function CustomerDetailPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Left Column */}
-        <div className="xl:col-span-3 space-y-6">
+        <div className="xl:col-span-3 space-y-4 sm:space-y-6">
           {/* Consent Status */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Consent Status</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Consent Status</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-surface2 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 p-4 bg-surface2 rounded-lg">
                 <div>
                   <div className="font-medium">Essential</div>
                   <div className="text-sm text-text-secondary">Order/booking confirmations</div>
@@ -96,7 +96,7 @@ export default function CustomerDetailPage() {
                   <Check size={20} className="text-emerald-400" />
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 bg-surface2 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 p-4 bg-surface2 rounded-lg">
                 <div>
                   <div className="font-medium">Marketing</div>
                   <div className="text-sm text-text-secondary">Promotional messages & offers</div>
@@ -115,7 +115,7 @@ export default function CustomerDetailPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 bg-surface2 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 p-4 bg-surface2 rounded-lg">
                 <div>
                   <div className="font-medium">Intelligence</div>
                   <div className="text-sm text-text-secondary">Ad audiences & ML predictions</div>
@@ -138,21 +138,21 @@ export default function CustomerDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Booking History</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Booking History</h3>
             <div className="space-y-3">
               {customerBookings.slice(0, 5).map((booking, i) => (
-                <div key={booking.id} className="flex items-center gap-4 p-4 bg-surface2 rounded-lg">
-                  <div className="text-center">
-                    <div className="text-sm font-medium">{format(parseISO(booking.scheduledAt), 'MMM')}</div>
-                    <div className="text-2xl font-bold">{format(parseISO(booking.scheduledAt), 'd')}</div>
+                <div key={booking.id} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-surface2 rounded-lg">
+                  <div className="text-center min-w-0">
+                    <div className="text-xs sm:text-sm font-medium">{format(parseISO(booking.scheduledAt), 'MMM')}</div>
+                    <div className="text-xl sm:text-2xl font-bold">{format(parseISO(booking.scheduledAt), 'd')}</div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium">{booking.serviceName}</div>
-                    <div className="text-sm text-text-secondary">{booking.staffName}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{booking.serviceName}</div>
+                    <div className="text-xs sm:text-sm text-text-secondary truncate">{booking.staffName}</div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <div className="font-semibold">${booking.servicePrice}</div>
                     <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusColors[booking.status]}`}>
                       {booking.status}
@@ -169,13 +169,13 @@ export default function CustomerDetailPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-surface border border-border rounded-xl p-6"
+              className="bg-surface border border-border rounded-xl p-4 sm:p-6"
             >
-              <h3 className="text-lg font-semibold mb-4">Call & Message Log</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Call & Message Log</h3>
               <div className="space-y-3">
                 {customer.calls.map((call) => (
-                  <div key={call.id} className="p-4 bg-surface2 rounded-lg">
-                    <div className="flex items-center gap-4 mb-2">
+                  <div key={call.id} className="p-3 sm:p-4 bg-surface2 rounded-lg">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2">
                       <span className="px-2 py-1 text-xs font-medium bg-primary/15 text-primary rounded-full">{call.intent}</span>
                       <span className="text-sm text-text-muted">{format(parseISO(call.createdAt), 'MMM d, yyyy · h:mm a')}</span>
                       <span className="text-sm text-text-muted">{Math.floor(call.duration / 60)}m {call.duration % 60}s</span>
@@ -189,15 +189,15 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Right Column */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
           {/* Predictive Intelligence */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Predictive Intelligence</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Predictive Intelligence</h3>
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -217,7 +217,7 @@ export default function CustomerDetailPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="bg-surface2 rounded-lg p-3">
                   <div className="text-xl font-bold">{formatCurrency(customer.ltv)}</div>
                   <div className="text-xs text-text-muted">LTV (12mo)</div>
@@ -239,9 +239,9 @@ export default function CustomerDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Preferences</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Preferences</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-text-secondary">Preferred staff</span>
@@ -265,9 +265,9 @@ export default function CustomerDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Actions</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Actions</h3>
             <div className="space-y-3">
               <button className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors">
                 New Booking

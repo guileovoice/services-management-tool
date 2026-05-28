@@ -66,7 +66,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: 'easeOut' }}
-          className="w-full rounded-2xl border border-white/[0.07] p-8"
+          className="w-full rounded-2xl border border-white/[0.07] p-6 sm:p-8"
           style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(20px)' }}
         >
           {/* Logo + Brand */}

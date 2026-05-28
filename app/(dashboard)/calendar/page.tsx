@@ -314,17 +314,17 @@ export default function CalendarPage() {
   }, [showNewBookingModal, services, displayStaff])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header Panel */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-surface/50 border border-border p-4 rounded-2xl backdrop-blur-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 bg-surface rounded-xl p-1 border border-border">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-surface/50 border border-border p-3 sm:p-4 rounded-xl sm:rounded-2xl backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 bg-surface rounded-xl p-1 border border-border w-full sm:w-auto justify-between">
             <button onClick={handlePrev} className="p-2 rounded-lg hover:bg-surface2 transition-colors" title="Previous">
               <ChevronLeft size={18} />
             </button>
             <button 
               onClick={handleToday}
-              className="px-3.5 py-1.5 text-xs font-semibold rounded-lg hover:bg-surface2 transition-colors border border-border/50"
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-surface2 transition-colors border border-border/50"
             >
               Today
             </button>
@@ -332,8 +332,8 @@ export default function CalendarPage() {
               <ChevronRight size={18} />
             </button>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-text-primary tracking-tight">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-text-primary tracking-tight truncate">
               {view === 'day' && format(selectedDate, 'EEEE, MMMM d, yyyy')}
               {view === 'week' && `Week of ${format(weekDays[0], 'MMM d')} – ${format(weekDays[6], 'MMM d, yyyy')}`}
               {view === 'month' && format(selectedDate, 'MMMM yyyy')}
@@ -346,7 +346,7 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           {/* View Toggle */}
           <div className="flex bg-surface rounded-xl p-1 border border-border">
             {(['day', 'week', 'month'] as const).map((v) => (
@@ -354,7 +354,7 @@ export default function CalendarPage() {
                 key={v}
                 onClick={() => setView(v)}
                 className={cn(
-                  'px-4 py-1.5 text-xs font-semibold rounded-lg transition-all capitalize',
+                  'px-3 sm:px-4 py-1.5 text-xs font-semibold rounded-lg transition-all capitalize',
                   view === v 
                     ? 'bg-primary text-white shadow-md' 
                     : 'text-text-secondary hover:text-text-primary hover:bg-surface2'
@@ -371,10 +371,10 @@ export default function CalendarPage() {
               if (services.length > 0) setSelectedServiceId(services[0].id)
               openNewBookingModal()
             }}
-            className="px-4 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl transition-all shadow-lg hover:shadow-primary/20 flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl transition-all shadow-lg hover:shadow-primary/20 flex items-center gap-2"
           >
             <Plus size={15} />
-            New Booking
+            <span className="hidden sm:inline">New Booking</span>
           </button>
         </div>
       </div>
@@ -688,7 +688,7 @@ export default function CalendarPage() {
       {/* ==================== NEW BOOKING MODAL ==================== */}
       <AnimatePresence>
         {showNewBookingModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -701,29 +701,29 @@ export default function CalendarPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-surface border border-border w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative z-10"
+              className="bg-surface border border-border w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative z-10 mx-2 sm:mx-0"
             >
               {/* Modal Header */}
-              <div className="p-5 border-b border-border bg-surface2/50 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+              <div className="p-4 sm:p-5 border-b border-border bg-surface2/50 flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary flex-shrink-0">
                     <Plus size={18} />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-text-primary text-base">Create New Booking</h3>
-                    <p className="text-xs text-text-secondary">Fill in appointment details below</p>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-text-primary text-sm sm:text-base truncate">Create New Booking</h3>
+                    <p className="text-xs text-text-secondary truncate">Fill in appointment details below</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => { closeNewBookingModal(); resetModal(); }}
-                  className="p-2 hover:bg-surface3 rounded-lg text-text-secondary transition-colors"
+                  className="p-2 hover:bg-surface3 rounded-lg text-text-secondary transition-colors flex-shrink-0"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {/* Form Content */}
-              <form onSubmit={handleCreateBooking} className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              <form onSubmit={handleCreateBooking} className="p-4 sm:p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 
                 {/* Customer Toggle Selection */}
                 <div className="space-y-2">
@@ -787,8 +787,8 @@ export default function CalendarPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3 p-4 bg-surface2/40 border border-border/50 rounded-xl">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-3 p-3 sm:p-4 bg-surface2/40 border border-border/50 rounded-xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-bold text-text-secondary mb-1">Full Name *</label>
                         <input
@@ -862,7 +862,7 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Date and Time Selector */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-xs font-bold text-text-secondary mb-1.5 uppercase tracking-wider">Date *</label>
                     <div className="relative">
@@ -959,7 +959,7 @@ export default function CalendarPage() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[420px] bg-surface border-l border-border z-50 overflow-y-auto shadow-2xl flex flex-col"
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-surface border-l border-border z-50 overflow-y-auto shadow-2xl flex flex-col"
             >
               {/* Sidebar Header */}
               <div className="p-6 border-b border-border flex items-center justify-between bg-surface2/30">

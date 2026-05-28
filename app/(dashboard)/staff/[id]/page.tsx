@@ -36,9 +36,9 @@ export default function StaffDetailPage() {
   const today = new Date()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <button onClick={() => router.push('/staff')} className="p-2 hover:bg-surface rounded-lg transition-colors">
           <ArrowLeft size={20} />
         </button>
@@ -50,11 +50,11 @@ export default function StaffDetailPage() {
             {getInitials(member.name)}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{member.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">{member.name}</h1>
             <p className="text-text-secondary">{member.roleTitle}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${member.isActive ? 'bg-emerald-500' : 'bg-text-muted'}`} />
             <span className="text-sm">{member.isActive ? 'Active' : 'Inactive'}</span>
@@ -73,14 +73,14 @@ export default function StaffDetailPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Left Column */}
-        <div className="xl:col-span-3 space-y-6">
+        <div className="xl:col-span-3 space-y-4 sm:space-y-6">
           {/* Bio & Services */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">About</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">About</h3>
             <p className="text-text-secondary mb-4">{member.bio}</p>
             <div className="flex flex-wrap gap-2">
               {memberServices.map(service => (
@@ -100,10 +100,11 @@ export default function StaffDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">This Week's Schedule</h3>
-            <div className="grid grid-cols-7 gap-2">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">This Week's Schedule</h3>
+            <div className="overflow-x-auto -mx-4 sm:-mx-0 px-4 sm:px-0">
+              <div className="grid grid-cols-7 gap-2 min-w-[600px] sm:min-w-0">
               {weekDays.map((day, i) => {
                 const dayName = getDayName(day)
                 const hours = member.workingHours[dayName]
@@ -142,6 +143,7 @@ export default function StaffDetailPage() {
                 )
               })}
             </div>
+            </div>
           </motion.div>
 
           {/* Recent Bookings */}
@@ -149,21 +151,21 @@ export default function StaffDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Recent Bookings</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Recent Bookings</h3>
             <div className="space-y-3">
               {memberBookings.map((booking, i) => (
-                <div key={booking.id} className="flex items-center gap-4 p-3 bg-surface2 rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{booking.customerName}</div>
-                    <div className="text-sm text-text-secondary">{booking.serviceName}</div>
+                <div key={booking.id} className="flex items-center gap-3 sm:gap-4 p-3 bg-surface2 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{booking.customerName}</div>
+                    <div className="text-xs sm:text-sm text-text-secondary truncate">{booking.serviceName}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm">{format(parseISO(booking.scheduledAt), 'MMM d')}</div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs sm:text-sm">{format(parseISO(booking.scheduledAt), 'MMM d')}</div>
                     <div className="text-xs text-text-muted">{format(parseISO(booking.scheduledAt), 'h:mm a')}</div>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
                     cn(statusColors[booking.status])
                   }`}>
                     {booking.status}
@@ -175,15 +177,15 @@ export default function StaffDetailPage() {
         </div>
 
         {/* Right Column */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
           {/* Performance Metrics */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Performance</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Performance</h3>
             
             <div className="space-y-4">
               <div>
@@ -238,10 +240,10 @@ export default function StaffDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Services</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Services</h3>
               <button className="text-sm text-primary hover:underline">Edit</button>
             </div>
             <div className="space-y-3">
@@ -262,18 +264,18 @@ export default function StaffDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Working Hours</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Working Hours</h3>
               <button className="text-sm text-primary hover:underline">Edit</button>
             </div>
             <div className="space-y-2">
               {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
                 const hours = member.workingHours[day]
                 return (
-                  <div key={day} className="flex items-center justify-between py-2">
-                    <span className="text-sm capitalize">{day}</span>
+                  <div key={day} className="flex items-center justify-between py-2 gap-2">
+                    <span className="text-xs sm:text-sm capitalize truncate">{day}</span>
                     {hours.closed ? (
                       <span className="text-sm text-text-muted">Day off</span>
                     ) : (
@@ -292,9 +294,9 @@ export default function StaffDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-surface border border-border rounded-xl p-6"
+            className="bg-surface border border-border rounded-xl p-4 sm:p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">Integrations</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Integrations</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-surface2 rounded-lg">
                 <div className="flex items-center gap-3">

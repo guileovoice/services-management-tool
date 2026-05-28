@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Calendar, Clock, Star, MapPin, Phone, Mail, Check, Scissors, Palette, Sparkles, Heart } from 'lucide-react'
+import { Menu, X, Calendar, Clock, Star, MapPin, Phone, Mail, Check, Scissors, Palette, Sparkles, Heart, Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { cn, formatCurrency, formatDuration, getInitials } from '@/lib/utils'
-import { format, addDays } from 'date-fns'
+import { format, addDays, isToday, isBefore } from 'date-fns'
 import { useStudioStore } from '@/lib/stores/studioStore'
 import toast from 'react-hot-toast'
 
@@ -32,9 +32,42 @@ export default function HomePage() {
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [bookingRef, setBookingRef] = useState('')
 
+  const [bookedSlots, setBookedSlots] = useState<string[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+
   const categories = ['ALL', 'HAIR', 'COLOR', 'BEARD', 'NAILS', 'SPA']
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i + 1))
-  const timeSlots = ['9:00 AM', '10:30 AM', '12:00 PM', '2:00 PM', '3:30 PM', '5:00 PM']
+
+  const generateTimeSlots = (): string[] => {
+    const slots: string[] = []
+    for (let h = 9; h < 19; h++) {
+      for (const m of [0, 30]) {
+        const hour12 = h > 12 ? h - 12 : h === 0 ? 12 : h
+        const ampm = h < 12 ? 'AM' : 'PM'
+        const label = `${hour12}:${m === 0 ? '00' : '30'} ${ampm}`
+        slots.push(label)
+      }
+    }
+    return slots
+  }
+  const allTimeSlots = generateTimeSlots()
+
+  const isSlotAvailable = (time: string): boolean => {
+    if (bookedSlots.includes(time)) return false
+    if (selectedDate && isToday(selectedDate)) {
+      const parseTime = (t: string) => {
+        const [h, m] = t.match(/(\d+):(\d+)/)?.slice(1).map(Number) || [9, 0]
+        const isPM = t.toLowerCase().includes('pm')
+        const hour = isPM && h < 12 ? h + 12 : h
+        return { hour, minute: m }
+      }
+      const { hour, minute } = parseTime(time)
+      const slotDate = new Date(selectedDate)
+      slotDate.setHours(hour, minute, 0, 0)
+      if (isBefore(slotDate, new Date())) return false
+    }
+    return true
+  }
 
   const featuredServices = services.filter(s => s.isPopular).slice(0, 4)
   const categoryColors: Record<string, { bg: string; text: string }> = {
@@ -55,12 +88,51 @@ export default function HomePage() {
     setBookingStep(2)
   }
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = async (date: Date) => {
     setSelectedDate(date)
     setSelectedTime(null)
+    setBookedSlots([])
+    if (!selectedStaff) return
+    setLoadingSlots(true)
+    try {
+      const y = date.getFullYear()
+      const mo = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${y}-${mo}-${d}`
+
+      const res = await fetch(
+        `/api/bookings/check-availability?staff_id=${selectedStaff.id}&date=${dateStr}&tenant_id=default`
+      )
+      const json = await res.json()
+      const bookings: { scheduled_at: string; service_duration_min: number }[] = json.bookings || []
+
+      const blocked: string[] = []
+      bookings.forEach((b) => {
+        const start = new Date(b.scheduled_at)
+        const end = new Date(start.getTime() + b.service_duration_min * 60000)
+        for (let h = 9; h < 19; h++) {
+          for (const m of [0, 30]) {
+            const slotStart = new Date(date)
+            slotStart.setHours(h, m, 0, 0)
+            const slotEnd = new Date(slotStart.getTime() + 30 * 60000)
+            if (slotStart < end && slotEnd > start) {
+              const hour12 = h > 12 ? h - 12 : h
+              const ampm = h < 12 ? 'AM' : 'PM'
+              blocked.push(`${hour12}:${m === 0 ? '00' : '30'} ${ampm}`)
+            }
+          }
+        }
+      })
+      setBookedSlots(blocked)
+    } catch {
+      setBookedSlots([])
+    } finally {
+      setLoadingSlots(false)
+    }
   }
 
   const handleTimeSelect = (time: string) => {
+    if (!isSlotAvailable(time)) return
     setSelectedTime(time)
     setBookingStep(3)
   }
@@ -222,7 +294,7 @@ export default function HomePage() {
                 </button>
               </div>
 
-              <div className="flex items-center gap-6 mt-8 pt-8 border-t border-border">
+              <div className="flex flex-wrap items-center gap-6 mt-8 pt-8 border-t border-border">
                 <div className="text-center">
                   <div className="text-3xl font-bold">4.9</div>
                   <div className="flex items-center gap-1 mt-1">
@@ -257,7 +329,7 @@ export default function HomePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
               </div>
-              <div className="absolute -bottom-6 -left-6 bg-surface border border-border rounded-xl p-4 shadow-xl z-10">
+              <div className="absolute -bottom-6 left-4 sm:left-6 bg-surface border border-border rounded-xl p-4 shadow-xl z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
                     <Calendar className="text-emerald-400" size={24} />
@@ -844,20 +916,34 @@ export default function HomePage() {
                     </div>
                     {selectedDate && (
                       <div className="grid grid-cols-3 gap-3">
-                        {timeSlots.map(time => (
-                          <button
-                            key={time}
-                            onClick={() => handleTimeSelect(time)}
-                            className={cn(
-                              'py-3 rounded-xl text-center font-medium transition-colors',
-                              selectedTime === time
-                                ? 'bg-primary text-white'
-                                : 'bg-surface2 hover:bg-surface3'
-                            )}
-                          >
-                            {time}
-                          </button>
-                        ))}
+                        {loadingSlots ? (
+                          <div className="col-span-3 flex items-center justify-center py-8 text-text-muted">
+                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                            Checking availability...
+                          </div>
+                        ) : (
+                          allTimeSlots.map(time => {
+                            const available = isSlotAvailable(time)
+                            return (
+                              <button
+                                key={time}
+                                disabled={!available}
+                                onClick={() => handleTimeSelect(time)}
+                                className={cn(
+                                  'py-3 rounded-xl text-center font-medium transition-colors',
+                                  selectedTime === time
+                                    ? 'bg-primary text-white'
+                                    : available
+                                      ? 'bg-surface2 hover:bg-surface3'
+                                      : 'bg-surface2/50 text-text-muted/40 cursor-not-allowed line-through'
+                                )}
+                                title={available ? time : 'Already booked'}
+                              >
+                                {time}
+                              </button>
+                            )
+                          })
+                        )}
                       </div>
                     )}
                   </div>

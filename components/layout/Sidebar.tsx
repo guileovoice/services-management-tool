@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { useStudioStore } from '@/lib/stores/studioStore'
+import { useUIStore } from '@/lib/stores/uiStore'
 import { supabaseAuth as supabase } from '@/lib/supabaseAuthClient'
 import { clearSessionMeta } from '@/lib/auth'
 import { useEffect, useState } from 'react'
@@ -28,6 +29,18 @@ export default function Sidebar() {
   const router = useRouter()
   const { staff, leads, bookings } = useStudioStore()
   const [sessionUser, setSessionUser] = useState<{ email?: string; name?: string } | null>(null)
+  const { sidebarOpen, setSidebarOpen } = useUIStore()
+
+  const closeSidebar = () => setSidebarOpen(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setSidebarOpen(true)
+    }
+    window.addEventListener('resize', handleResize)
+    if (window.innerWidth >= 1024) setSidebarOpen(true)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [setSidebarOpen])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -85,15 +98,28 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[260px] bg-[#13131A] border-r border-border flex flex-col z-40">
-      {/* Logo */}
-      <div className="p-5 border-b border-border">
-        <Link href="/overview" className="flex items-center gap-3 group">
-          <img src="/favicon.svg" alt="Guileo" className="w-8 h-8 rounded-lg" />
-          <div className="text-xl font-bold text-text-primary group-hover:text-primary transition-colors">Guileo AI</div>
-        </Link>
-        <p className="text-xs text-text-muted mt-1 ml-11">for Services</p>
-      </div>
+    <>
+      {/* Mobile overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+      <aside className={cn(
+        'fixed left-0 top-0 h-screen w-[260px] bg-[#13131A] border-r border-border flex flex-col z-40 transition-transform duration-300',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      )}>
+        {/* Logo */}
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <Link href="/overview" onClick={closeSidebar} className="flex items-center gap-3 group">
+            <img src="/favicon.svg" alt="Guileo" className="w-8 h-8 rounded-lg" />
+            <div className="text-xl font-bold text-text-primary group-hover:text-primary transition-colors">Guileo AI</div>
+          </Link>
+          <button onClick={closeSidebar} className="lg:hidden p-1 hover:bg-surface2 rounded">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
 
       {/* Tenant Info */}
       <div className="p-4 border-b border-border">
@@ -182,5 +208,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   )
 }

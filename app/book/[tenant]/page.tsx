@@ -257,7 +257,7 @@ export default function PublicBookingPage() {
             <Check size={40} className="text-emerald-400" />
           </motion.div>
 
-          <h1 className="text-3xl font-bold mb-1">Booking Confirmed! 🎉</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Booking Confirmed! 🎉</h1>
           <p className="text-text-secondary mb-6">Your appointment has been scheduled successfully.</p>
 
           {/* Booking Reference */}
@@ -341,35 +341,35 @@ export default function PublicBookingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-surface border-b border-border py-6">
+      <header className="bg-surface border-b border-border py-4 sm:py-6">
         <div className="max-w-md mx-auto px-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-xl font-bold">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-lg sm:text-xl font-bold">
               TS
             </div>
-            <div>
-              <div className="text-xl font-bold">The Studio</div>
-              <div className="text-sm text-text-muted">Williamsburg, Brooklyn</div>
+            <div className="min-w-0">
+              <div className="text-lg sm:text-xl font-bold truncate">The Studio</div>
+              <div className="text-xs sm:text-sm text-text-muted truncate">Williamsburg, Brooklyn</div>
             </div>
           </div>
-          <p className="mt-4 text-text-secondary text-sm">Book your appointment online · Instant confirmation</p>
+          <p className="mt-3 sm:mt-4 text-text-secondary text-xs sm:text-sm">Book your appointment online · Instant confirmation</p>
         </div>
       </header>
 
       {/* Progress */}
-      <div className="max-w-md mx-auto px-4 py-6">
+      <div className="max-w-md mx-auto px-4 py-4 sm:py-6">
         <div className="flex items-center justify-between">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center">
               <div className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
+                'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium',
                 i <= step ? 'bg-primary text-white' : 'bg-surface2 text-text-muted'
               )}>
-                {i < step ? <Check size={14} /> : i + 1}
+                {i < step ? <Check size={12} /> : i + 1}
               </div>
               {i < steps.length - 1 && (
                 <div className={cn(
-                  'w-12 h-0.5 mx-1',
+                  'w-8 sm:w-12 h-0.5 mx-0.5 sm:mx-1',
                   i < step ? 'bg-primary' : 'bg-surface2'
                 )} />
               )}
@@ -524,7 +524,7 @@ export default function PublicBookingPage() {
               </button>
 
               {/* Date Picker */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
                 {weekDays.map((day, i) => {
                   const isPast = isBefore(startOfDay(day), startOfDay(new Date()))
                   return (
@@ -533,7 +533,7 @@ export default function PublicBookingPage() {
                       onClick={() => !isPast && handleDateSelect(day)}
                       disabled={isPast}
                       className={cn(
-                        'flex-shrink-0 w-16 py-3 rounded-xl text-center transition-colors',
+                        'flex-shrink-0 w-14 sm:w-16 py-2.5 sm:py-3 rounded-xl text-center transition-colors',
                         isPast
                           ? 'bg-surface2 text-text-muted opacity-40 cursor-not-allowed'
                           : selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
@@ -541,9 +541,9 @@ export default function PublicBookingPage() {
                           : 'bg-surface hover:bg-surface2 border border-border'
                       )}
                     >
-                      <div className="text-xs opacity-70">{format(day, 'EEE')}</div>
-                      <div className="text-lg font-bold">{format(day, 'd')}</div>
-                      {isToday(day) && <div className="text-[9px] opacity-70">TODAY</div>}
+                      <div className="text-[10px] sm:text-xs opacity-70">{format(day, 'EEE')}</div>
+                      <div className="text-base sm:text-lg font-bold">{format(day, 'd')}</div>
+                      {isToday(day) && <div className="text-[8px] sm:text-[9px] opacity-70">TODAY</div>}
                     </button>
                   )
                 })}
@@ -555,7 +555,7 @@ export default function PublicBookingPage() {
                   {loadingSlots ? (
                     <div className="text-center py-8 text-text-muted text-sm">Checking availability...</div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                       {allTimeSlots.map((time) => {
                         const available = isSlotAvailable(time)
                         return (

@@ -80,7 +80,7 @@ export default function IntegrationsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Integrations</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">Integrations</h1>
         <p className="text-text-secondary">Connect your tools to automate booking, payments, and customer sync.</p>
       </div>
 
@@ -177,18 +177,18 @@ export default function IntegrationsPage() {
 
       {/* Manage Modal - Google Calendar */}
       {showManageModal === 'google-calendar' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowManageModal(null)} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-surface border border-border rounded-xl p-6 w-full max-w-lg"
+            className="relative bg-surface border border-border rounded-xl p-4 sm:p-6 w-full max-w-lg"
           >
             <h2 className="text-xl font-semibold mb-6">Manage Google Calendar</h2>
             
             <div className="space-y-4 mb-6">
               {staff.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 bg-surface2 rounded-lg">
+                <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-surface2 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
@@ -247,12 +247,12 @@ export default function IntegrationsPage() {
 
       {/* Manage Modal - Stripe */}
       {showManageModal === 'stripe' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowManageModal(null)} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-surface border border-border rounded-xl p-6 w-full max-w-lg"
+            className="relative bg-surface border border-border rounded-xl p-4 sm:p-6 w-full max-w-lg"
           >
             <h2 className="text-xl font-semibold mb-6">Manage Stripe</h2>
             

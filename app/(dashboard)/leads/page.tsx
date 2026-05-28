@@ -178,18 +178,18 @@ export default function LeadsPage() {
     }, 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Leads</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Leads</h1>
           <p className="text-text-secondary">${totalPipelineValue} potential revenue</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors">
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors">
             Import from calls
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors">
+          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors">
             <Plus size={18} />
             Add Lead
           </button>
@@ -197,16 +197,18 @@ export default function LeadsPage() {
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4">
-        {leadStatuses.map((status) => (
-          <div
-            key={status.value}
-            className="px-4 py-2 bg-surface border border-border rounded-lg"
-          >
-            <div className="text-xl font-bold">{status.count}</div>
-            <div className="text-xs text-text-muted">{status.label}</div>
-          </div>
-        ))}
+      <div className="overflow-x-auto -mx-4 sm:-mx-0 px-4 sm:px-0">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-[400px] sm:min-w-0">
+          {leadStatuses.map((status) => (
+            <div
+              key={status.value}
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-surface border border-border rounded-lg"
+            >
+              <div className="text-lg sm:text-xl font-bold">{status.count}</div>
+              <div className="text-xs text-text-muted">{status.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Kanban Board */}
@@ -278,9 +280,9 @@ export default function LeadsPage() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[420px] bg-surface border-l border-border z-50 overflow-y-auto"
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-surface border-l border-border z-50 overflow-y-auto"
             >
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">

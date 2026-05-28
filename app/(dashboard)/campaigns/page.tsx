@@ -105,16 +105,16 @@ export default function CampaignsPage() {
     : campaigns.filter(c => c.status.toUpperCase() === activeTab.toUpperCase())
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Campaigns</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Campaigns</h1>
           <p className="text-text-secondary">8 sent · Avg open rate 68% · $3,240 attributed revenue</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
         >
           <Plus size={18} />
           Create Campaign
@@ -122,7 +122,7 @@ export default function CampaignsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -149,9 +149,9 @@ export default function CampaignsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-surface border border-border rounded-xl p-6"
+              className="bg-surface border border-border rounded-xl p-4 sm:p-6"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-surface2 flex items-center justify-center">
                     <ChannelIcon size={20} className="text-text-muted" />
@@ -179,7 +179,7 @@ export default function CampaignsPage() {
               </div>
 
               {campaign.openRate !== null && (
-                <div className="grid grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
                   <div className="bg-surface2 rounded-lg p-3">
                     <div className="text-2xl font-bold">{campaign.openRate}%</div>
                     <div className="text-xs text-text-muted">Open Rate</div>
@@ -199,14 +199,14 @@ export default function CampaignsPage() {
                 "{campaign.message}"
               </div>
 
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface2 transition-colors">
+              <div className="flex flex-wrap items-center gap-2">
+                <button className="flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface2 transition-colors">
                   View Report
                 </button>
-                <button className="px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface2 transition-colors">
+                <button className="flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface2 transition-colors">
                   Duplicate
                 </button>
-                <button className="px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface2 transition-colors">
+                <button className="flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-surface2 transition-colors">
                   Archive
                 </button>
               </div>
@@ -217,17 +217,17 @@ export default function CampaignsPage() {
 
       {/* Create Campaign Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowCreateModal(false)} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-surface border border-border rounded-xl p-6 w-full max-w-lg"
+            className="relative bg-surface border border-border rounded-xl p-4 sm:p-6 w-full max-w-lg"
           >
             <h2 className="text-xl font-semibold mb-6">Create Campaign</h2>
 
             {/* Progress Steps */}
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
               {[1, 2, 3, 4, 5].map((step) => (
                 <div
                   key={step}
@@ -245,7 +245,7 @@ export default function CampaignsPage() {
             {createStep === 1 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium mb-4">Choose Channel</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {[
                     { icon: MessageSquare, label: 'WhatsApp', desc: 'Rich messaging with templates' },
                     { icon: MessageSquare, label: 'SMS', desc: 'Text messages' },
@@ -302,7 +302,7 @@ export default function CampaignsPage() {
             {createStep === 4 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium mb-4">Schedule</h3>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="radio" name="schedule" className="text-primary" />
                     <span>Send Now</span>
@@ -338,10 +338,10 @@ export default function CampaignsPage() {
             )}
 
             {/* Navigation */}
-            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-6 pt-6 border-t border-border">
               <button
                 onClick={() => setCreateStep(s => Math.max(1, s - 1))}
-                className="px-4 py-2 text-text-secondary hover:bg-surface2 rounded-lg transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-text-secondary hover:bg-surface2 rounded-lg transition-colors"
                 disabled={createStep === 1}
               >
                 Back
@@ -355,7 +355,7 @@ export default function CampaignsPage() {
                     setCreateStep(s => s + 1)
                   }
                 }}
-                className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+                className="w-full sm:w-auto px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
               >
                 {createStep === 5 ? 'Send Campaign' : 'Continue'}
               </button>

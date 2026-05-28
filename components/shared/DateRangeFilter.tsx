@@ -280,70 +280,71 @@ export function DateRangeFilter() {
           variant="outline"
           size="sm"
           rounded="full"
-          className="border-border bg-surface hover:bg-surface2 text-text-primary gap-2 text-xs font-bold h-9 shrink-0 px-4"
+          className="border-border bg-surface hover:bg-surface2 text-text-primary gap-1.5 sm:gap-2 text-xs font-bold h-9 shrink-0 px-2 sm:px-4"
         >
           <CalendarDays className="w-4 h-4 text-primary" />
-          <span className="font-semibold">{displayLabel()}</span>
+          <span className="font-semibold hidden sm:inline">{displayLabel()}</span>
+          <span className="font-semibold sm:hidden">Dates</span>
           <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-auto p-0 bg-surface border border-border rounded-2xl shadow-xl overflow-hidden z-50 flex flex-col md:flex-row"
-      >
-        <div className="w-44 border-r border-border p-3 flex flex-col gap-1 bg-surface2/30 shrink-0">
-          {presets.map((preset) => {
-            const isActive = activePreset === preset.label
-            return (
-              <button
-                key={preset.label}
-                onClick={() => handlePresetClick(preset)}
-                className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-text-muted hover:bg-surface2 hover:text-text-primary'
-                }`}
-              >
-                {preset.label}
-              </button>
-            )
-          })}
-        </div>
-        <div className="flex flex-col">
-          <div className="flex flex-col md:flex-row gap-6 p-6">
-            {renderCalendarMonth(leftMonth, true, false)}
-            {renderCalendarMonth(rightMonth, false, true)}
+        <PopoverContent
+          align="end"
+          className="w-[calc(100vw-2rem)] sm:w-auto p-0 bg-surface border border-border rounded-2xl shadow-xl overflow-hidden z-50 flex flex-col md:flex-row max-h-[80vh]"
+        >
+          <div className="w-full md:w-44 border-r border-border p-3 flex flex-row md:flex-col gap-1 bg-surface2/30 shrink-0 overflow-x-auto">
+            {presets.map((preset) => {
+              const isActive = activePreset === preset.label
+              return (
+                <button
+                  key={preset.label}
+                  onClick={() => handlePresetClick(preset)}
+                  className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-text-muted hover:bg-surface2 hover:text-text-primary'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              )
+            })}
           </div>
-          <div className="flex justify-between items-center px-6 py-4 border-t border-border bg-surface shrink-0">
-            <button
-              onClick={() => {
-                const today = new Date()
-                const start = subDays(today, 6).toISOString().split('T')[0]
-                const end = today.toISOString().split('T')[0]
-                onChange({ start, end })
-                setIsOpen(false)
-              }}
-              className="text-xs font-bold text-danger hover:underline cursor-pointer"
-            >
-              Clear
-            </button>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col overflow-y-auto">
+            <div className="flex flex-col md:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
+              {renderCalendarMonth(leftMonth, true, false)}
+              <div className="hidden md:block">{renderCalendarMonth(rightMonth, false, true)}</div>
+            </div>
+            <div className="flex justify-between items-center px-4 sm:px-6 py-4 border-t border-border bg-surface shrink-0">
               <button
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-xs font-bold text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                onClick={() => {
+                  const today = new Date()
+                  const start = subDays(today, 6).toISOString().split('T')[0]
+                  const end = today.toISOString().split('T')[0]
+                  onChange({ start, end })
+                  setIsOpen(false)
+                }}
+                className="text-xs font-bold text-danger hover:underline cursor-pointer"
               >
-                Cancel
+                Clear
               </button>
-              <button
-                onClick={handleApply}
-                className="px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer"
-              >
-                Apply
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl transition-all shadow-md shadow-primary/20 cursor-pointer"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </PopoverContent>
+        </PopoverContent>
     </Popover>
   )
 }

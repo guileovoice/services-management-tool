@@ -34,16 +34,16 @@ export default function ServicesPage() {
     : services.filter(s => s.category === activeCategory)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Service Catalog</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Service Catalog</h1>
           <p className="text-text-secondary">{services.length} services · {categories.length - 1} categories</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
         >
           <Plus size={18} />
           Add Service
@@ -74,7 +74,7 @@ export default function ServicesPage() {
       </div>
 
       {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredServices.map((service, i) => {
           const serviceStaff = staff.filter(s => service.staffIds.includes(s.id))
           const colors = categoryColors[service.category] || { bg: 'rgba(107, 114, 128, 0.15)', text: '#6B7280' }
@@ -85,7 +85,7 @@ export default function ServicesPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-surface border border-border rounded-xl p-5 hover:scale-[1.01] hover:shadow-lg transition-all"
+              className="bg-surface border border-border rounded-xl p-4 sm:p-5 hover:scale-[1.01] hover:shadow-lg transition-all"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
@@ -166,12 +166,12 @@ export default function ServicesPage() {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-surface border border-border rounded-xl p-6 w-full max-w-lg"
+            className="relative bg-surface border border-border rounded-xl p-4 sm:p-6 w-full max-w-lg"
           >
             <h2 className="text-xl font-semibold mb-6">Add Service</h2>
             <div className="space-y-4">
@@ -183,7 +183,7 @@ export default function ServicesPage() {
                   placeholder="Enter service name"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-text-secondary">Category</label>
                   <select className="w-full px-4 py-2 bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary">

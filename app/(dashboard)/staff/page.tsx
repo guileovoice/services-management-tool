@@ -12,16 +12,16 @@ export default function StaffPage() {
   const [showAddModal, setShowAddModal] = useState(false)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Team</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Team</h1>
           <p className="text-text-secondary">{staff.length} active staff members</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
         >
           <Plus size={18} />
           Add Staff Member
@@ -29,7 +29,7 @@ export default function StaffPage() {
       </div>
 
       {/* Staff Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {staff.map((member, i) => {
           const memberServices = services.filter(s => member.services.includes(s.id))
           return (
@@ -135,12 +135,12 @@ export default function StaffPage() {
 
       {/* Add Staff Modal (Simplified) */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-surface border border-border rounded-xl p-6 w-full max-w-md"
+            className="relative bg-surface border border-border rounded-xl p-4 sm:p-6 w-full max-w-md"
           >
             <h2 className="text-xl font-semibold mb-6">Add Staff Member</h2>
             <div className="space-y-4">
@@ -162,8 +162,8 @@ export default function StaffPage() {
                   <option>Colorist</option>
                 </select>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <div className="w-full sm:flex-1">
                   <label className="block text-sm font-medium mb-2 text-text-secondary">Phone</label>
                   <input
                     type="tel"
@@ -181,14 +181,14 @@ export default function StaffPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-text-secondary hover:bg-surface2 rounded-lg transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-text-secondary hover:bg-surface2 rounded-lg transition-colors"
               >
                 Cancel
               </button>
-              <button className="px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors">
+              <button className="w-full sm:w-auto px-4 py-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors">
                 Add Staff Member
               </button>
             </div>

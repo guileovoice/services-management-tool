@@ -38,47 +38,47 @@ export default function CustomersPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="text-text-secondary">{totalCustomers} total customers</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Customers</h1>
+          <p className="text-sm text-text-secondary">{totalCustomers} total customers</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors">
+        <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors w-full sm:w-auto justify-center">
           <Download size={16} />
           Export
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold">{totalCustomers}</div>
-          <div className="text-sm text-text-secondary">Total Customers</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold">{totalCustomers}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">Total Customers</div>
         </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-emerald-400">{activeCustomers}</div>
-          <div className="text-sm text-text-secondary">Active (30d)</div>
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold text-emerald-400">{activeCustomers}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">Active (30d)</div>
         </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-warning">{atRiskCustomers}</div>
-          <div className="text-sm text-text-secondary">At Risk</div>
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold text-warning">{atRiskCustomers}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">At Risk</div>
         </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="text-2xl font-bold text-primary">{marketingConsent}</div>
-          <div className="text-sm text-text-secondary">Marketing Consent</div>
+        <div className="bg-surface border border-border rounded-xl p-3 sm:p-4">
+          <div className="text-lg sm:text-2xl font-bold text-primary">{marketingConsent}</div>
+          <div className="text-xs sm:text-sm text-text-secondary">Marketing Consent</div>
         </div>
       </div>
 
       {/* Segments */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
         {segments.map((seg) => (
           <button
             key={seg.label}
             onClick={() => setActiveSegment(seg.label)}
             className={cn(
-              'px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap',
+              'px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0',
               activeSegment === seg.label
                 ? 'bg-primary text-white'
                 : 'bg-surface hover:bg-surface2 text-text-secondary'
@@ -90,8 +90,8 @@ export default function CustomersPage() {
       </div>
 
       {/* Search & Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+        <div className="relative flex-1 w-full sm:max-w-md">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
@@ -101,26 +101,26 @@ export default function CustomersPage() {
             className="w-full pl-10 pr-4 py-2 bg-surface2 border border-border rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:border-primary"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-surface2 border border-border rounded-lg hover:bg-surface3 transition-colors">
+        <button className="flex items-center gap-2 px-4 py-2 bg-surface2 border border-border rounded-lg hover:bg-surface3 transition-colors w-full sm:w-auto justify-center">
           <Filter size={16} />
           Filters
         </button>
       </div>
 
       {/* Customer Table */}
-      <div className="bg-surface border border-border rounded-xl overflow-hidden">
-        <table className="w-full">
+      <div className="bg-surface border border-border rounded-xl overflow-x-auto">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-surface2">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Visits</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Total Spent</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Avg Booking</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Last Visit</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Preferred Staff</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Consents</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Churn Risk</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">No-Shows</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Customer</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Visits</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Total Spent</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Avg Booking</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Last Visit</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Preferred Staff</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Consents</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">Churn Risk</th>
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-text-muted uppercase">No-Shows</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -132,42 +132,42 @@ export default function CustomersPage() {
                 transition={{ delay: i * 0.02 }}
                 className="hover:bg-surface2 transition-colors cursor-pointer"
               >
-                <td className="px-4 py-3">
-                  <Link href={`/customers/${customer.id}`} className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                <td className="px-3 sm:px-4 py-3">
+                  <Link href={`/customers/${customer.id}`} className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs sm:text-sm font-medium flex-shrink-0">
                       {getInitials(customer.name)}
                     </div>
-                    <div>
-                      <div className="font-medium">{customer.name}</div>
-                      <div className="text-xs text-text-muted">{customer.phone}</div>
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm truncate">{customer.name}</div>
+                      <div className="text-xs text-text-muted truncate">{customer.phone}</div>
                     </div>
                   </Link>
                 </td>
-                <td className="px-4 py-3">
-                  <span className="px-2 py-1 text-sm font-medium rounded-full bg-surface2">
+                <td className="px-3 sm:px-4 py-3">
+                  <span className="px-2 py-1 text-xs sm:text-sm font-medium rounded-full bg-surface2">
                     {customer.totalBookings}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-semibold">
+                <td className="px-3 sm:px-4 py-3 font-semibold text-sm">
                   {formatCurrency(customer.totalSpent)}
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
+                <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-text-secondary">
                   {formatCurrency(customer.avgBookingValue)}
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
+                <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-text-secondary">
                   {customer.lastBookingAt ? formatRelativeTime(customer.lastBookingAt) : '-'}
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
+                <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-text-secondary">
                   {customer.preferredStaffName || '-'}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3 sm:px-4 py-3">
                   <div className="flex items-center gap-1">
-                    <span className={`w-5 h-5 rounded flex items-center justify-center text-xs ${customer.consents.essential ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface2 text-text-muted'}`}>E</span>
-                    <span className={`w-5 h-5 rounded flex items-center justify-center text-xs ${customer.consents.marketing ? 'bg-blue-500/15 text-blue-400' : 'bg-surface2 text-text-muted'}`}>M</span>
-                    <span className={`w-5 h-5 rounded flex items-center justify-center text-xs ${customer.consents.intelligence ? 'bg-violet-500/15 text-violet-400' : 'bg-surface2 text-text-muted'}`}>I</span>
+                    <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center text-[10px] sm:text-xs ${customer.consents.essential ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface2 text-text-muted'}`}>E</span>
+                    <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center text-[10px] sm:text-xs ${customer.consents.marketing ? 'bg-blue-500/15 text-blue-400' : 'bg-surface2 text-text-muted'}`}>M</span>
+                    <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center text-[10px] sm:text-xs ${customer.consents.intelligence ? 'bg-violet-500/15 text-violet-400' : 'bg-surface2 text-text-muted'}`}>I</span>
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3 sm:px-4 py-3">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     customer.churnRisk === 'LOW' ? 'bg-emerald-500/15 text-emerald-400' :
                     customer.churnRisk === 'MEDIUM' ? 'bg-yellow-500/15 text-yellow-400' :
@@ -176,8 +176,8 @@ export default function CustomersPage() {
                     {customer.churnRisk}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <span className={`text-sm ${customer.noShowCount > 2 ? 'text-danger font-medium' : 'text-text-secondary'}`}>
+                <td className="px-3 sm:px-4 py-3">
+                  <span className={`text-xs sm:text-sm ${customer.noShowCount > 2 ? 'text-danger font-medium' : 'text-text-secondary'}`}>
                     {customer.noShowCount}
                   </span>
                 </td>

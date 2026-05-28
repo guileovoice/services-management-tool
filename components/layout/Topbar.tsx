@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Bell, Search, Plus, ChevronRight, Menu } from 'lucide-react'
+import { Bell, Search, Plus, Menu } from 'lucide-react'
 import { cn, formatRelativeTime, getInitials } from '@/lib/utils'
 import { useUIStore } from '@/lib/stores/uiStore'
 import { useCalendarStore } from '@/lib/stores/calendarStore'
@@ -27,7 +27,7 @@ const pageTitles: Record<string, string> = {
 export default function Topbar() {
   const router = useRouter()
   const pathname = usePathname()
-  const { notifications, unreadCount, toggleCommandPalette, markAsRead, markAllAsRead } = useUIStore()
+  const { notifications, unreadCount, toggleCommandPalette, markAsRead, markAllAsRead, toggleSidebar } = useUIStore()
   const { openNewBookingModal } = useCalendarStore()
   const [currentTime, setCurrentTime] = useState(new Date())
   const [showNotifications, setShowNotifications] = useState(false)
@@ -51,22 +51,29 @@ export default function Topbar() {
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="h-full px-6 flex items-center justify-between">
+      <div className="h-full px-4 sm:px-6 flex items-center justify-between gap-3">
         {/* Left */}
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold">{pageTitle}</h1>
-          <DateRangeFilter />
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <button
+            onClick={toggleSidebar}
+            className="lg:hidden p-2 hover:bg-surface rounded-lg transition-colors flex-shrink-0"
+            aria-label="Toggle sidebar"
+          >
+            <Menu size={20} />
+          </button>
+          <h1 className="text-lg sm:text-xl font-semibold truncate">{pageTitle}</h1>
+          <div className="hidden sm:block"><DateRangeFilter /></div>
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Quick Booking */}
           <button
             onClick={() => openNewBookingModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors"
           >
             <Plus size={16} />
-            New Booking
+            <span className="hidden sm:inline">New Booking</span>
           </button>
 
           {/* Live Clock */}

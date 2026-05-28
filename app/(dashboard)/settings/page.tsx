@@ -36,7 +36,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
         <p className="text-text-secondary">Manage your business settings and preferences</p>
       </div>
 
@@ -69,7 +69,7 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold">Business Information</h2>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-text-secondary">Business Name</label>
                     <input
@@ -90,7 +90,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-text-secondary">Phone Number</label>
                     <input
@@ -112,12 +112,12 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-text-secondary">Address</label>
-                  <div className="flex items-center gap-3">
-                    <MapPin size={18} className="text-text-muted" />
+                  <div className="flex items-start sm:items-center gap-3">
+                    <MapPin size={18} className="text-text-muted flex-shrink-0 mt-2 sm:mt-0" />
                     <input
                       type="text"
                       defaultValue="127 Bedford Ave, Williamsburg, Brooklyn, NY 11211"
-                      className="flex-1 px-4 py-2 bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary"
+                      className="w-full px-4 py-2 bg-surface2 border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary"
                     />
                   </div>
                 </div>
@@ -134,9 +134,9 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium mb-2 text-text-secondary">Operating Hours</label>
                   <div className="space-y-2">
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                      <div key={day} className="flex items-center justify-between py-2">
-                        <span className="text-sm w-28">{day}</span>
-                        <div className="flex items-center gap-4">
+                      <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 gap-2">
+                        <span className="text-xs sm:text-sm w-full sm:w-28">{day}</span>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" defaultChecked className="w-4 h-4 text-primary rounded" />
                             <span className="text-sm">Open</span>
@@ -179,7 +179,7 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-text-secondary">Voice Selection</label>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {voices.map((voice) => (
                       <button
                         key={voice.id}
@@ -281,7 +281,7 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold">Booking Rules</h2>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-text-secondary">Minimum booking notice</label>
                     <select className="w-full px-4 py-2 bg-surface2 border border-border rounded-lg text-text-primary">
@@ -395,13 +395,14 @@ export default function SettingsPage() {
                   </button>
                 </div>
 
-                <table className="w-full">
+                <div className="overflow-x-auto">
+                <table className="w-full min-w-[500px]">
                   <thead>
                     <tr className="text-left text-xs text-text-muted uppercase">
-                      <th className="pb-3">Name</th>
-                      <th className="pb-3">Email</th>
-                      <th className="pb-3">Role</th>
-                      <th className="pb-3">Last Login</th>
+                      <th className="pb-3 pr-4">Name</th>
+                      <th className="pb-3 pr-4">Email</th>
+                      <th className="pb-3 pr-4">Role</th>
+                      <th className="pb-3 pr-4">Last Login</th>
                       <th className="pb-3">Status</th>
                     </tr>
                   </thead>
@@ -430,6 +431,7 @@ export default function SettingsPage() {
                     </tr>
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
 
@@ -454,11 +456,12 @@ export default function SettingsPage() {
 
                 <div>
                   <h3 className="font-medium mb-4">Invoice History</h3>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[300px]">
                     <thead>
                       <tr className="text-left text-text-muted">
-                        <th className="pb-2">Date</th>
-                        <th className="pb-2">Amount</th>
+                        <th className="pb-2 pr-4">Date</th>
+                        <th className="pb-2 pr-4">Amount</th>
                         <th className="pb-2">Status</th>
                       </tr>
                     </thead>
@@ -475,6 +478,7 @@ export default function SettingsPage() {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -483,7 +487,7 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-danger">Danger Zone</h2>
 
-                <div className="border border-danger/30 rounded-xl p-6 space-y-4">
+                <div className="border border-danger/30 rounded-xl p-4 sm:p-6 space-y-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-danger/15 flex items-center justify-center flex-shrink-0">
                       <Upload size={24} className="text-danger" />
