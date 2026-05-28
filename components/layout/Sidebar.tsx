@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
-  CalendarDays,
   ClipboardList,
   Users,
   Scissors,
@@ -48,10 +47,6 @@ export default function Sidebar() {
   }
 
   const newLeadsCount = leads.filter(l => l.status === 'NEW').length
-  const todayBookingsCount = bookings.filter(b => {
-    const todayStr = new Date().toISOString().split('T')[0]
-    return b.scheduledAt.startsWith(todayStr)
-  }).length
 
   const currentUser = { name: sessionUser?.name || 'Owner', avatarColor: '#6C3CE1' }
 
@@ -60,7 +55,6 @@ export default function Sidebar() {
       label: 'Operations',
       items: [
         { label: 'Overview', icon: LayoutDashboard, href: '/overview' },
-        { label: 'Booking Calendar', icon: CalendarDays, href: '/calendar', badge: String(todayBookingsCount) },
         { label: 'Bookings', icon: ClipboardList, href: '/bookings' },
         { label: 'Leads', icon: Funnel, href: '/leads', badge: String(newLeadsCount) },
       ],

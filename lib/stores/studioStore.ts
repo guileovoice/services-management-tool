@@ -135,18 +135,34 @@ export const useStudioStore = create<StudioState>((set, get) => ({
         throw new Error('Booking date and time cannot be in the past.')
       }
 
-      // 2. Check for duplicate bookings (same stylist, same scheduled time slot)
-      const { data: duplicateBooking } = await supabase
-        .from('bookings')
-        .select('id')
-        .eq('staff_id', data.staffId)
-        .eq('scheduled_at', data.scheduledAt)
-        .neq('status', 'CANCELLED')
-        .maybeSingle()
+      // 2. Check for overlapping bookings (same stylist, overlapping time window)
+      const newStart = bookingTime
+      const newEnd = new Date(newStart.getTime() + data.serviceDurationMin * 60000)
 
-      if (duplicateBooking) {
-        throw new Error('This time slot is already booked for this stylist. Please choose another time or stylist.')
+      // Use UTC day boundaries — scheduled_at is stored in UTC
+      const dayStartUTC = new Date(newStart)
+      dayStartUTC.setUTCHours(0, 0, 0, 0)
+
+      const { data: overlapping } = await supabase
+        .from('bookings')
+        .select('id, scheduled_at, service_duration_min')
+        .eq('tenant_id', TENANT_ID)
+        .eq('staff_id', data.staffId)
+        .neq('status', 'CANCELLED')
+        .gte('scheduled_at', dayStartUTC.toISOString())
+        .lt('scheduled_at', newEnd.toISOString())   // existing starts before new ends
+
+      if (overlapping && overlapping.length > 0) {
+        const conflict = overlapping.find((b: { scheduled_at: string; service_duration_min: number }) => {
+          const exStart = new Date(b.scheduled_at)
+          const exEnd = new Date(exStart.getTime() + b.service_duration_min * 60000)
+          return newStart < exEnd && newEnd > exStart
+        })
+        if (conflict) {
+          throw new Error('This time slot is already booked for this stylist. Please choose another time or stylist.')
+        }
       }
+
 
       const { data: existingCustomer } = await supabase
         .from('customers')
@@ -181,7 +197,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
         service_duration_min: data.serviceDurationMin,
         service_price: data.servicePrice,
         scheduled_at: data.scheduledAt,
-        ends_at: data.endsAt,
+        ends_at: data.endsAt,           // stored as text per schema
         status: 'CONFIRMED',
         channel: data.channel,
         notes: data.notes || null,
@@ -195,32 +211,69 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       // Update local Zustand state
       set(state => ({ bookings: [...state.bookings, booking] }))
 
-      // 3. Create outbound SMS & WhatsApp messages confirming the booking details
+      // 3. Build rich confirmation messages
       const dateFormatted = format(parseISO(data.scheduledAt), 'EEEE, MMMM d, yyyy')
       const timeFormatted = format(parseISO(data.scheduledAt), 'h:mm a')
-      const confirmationMsg = `Hi ${data.customerName}, your appointment for ${data.serviceName} with ${data.staffName} is confirmed for ${dateFormatted} at ${timeFormatted}. Ref: ${ref}.`
+
+      const whatsappMsg =
+`✅ *Booking Confirmed!*
+
+Hi ${data.customerName}, your appointment is confirmed. Here are your details:
+
+📋 *Booking Ref:* ${ref}
+💇 *Service:* ${data.serviceName}
+👤 *Stylist:* ${data.staffName}
+📅 *Date:* ${dateFormatted}
+⏰ *Time:* ${timeFormatted}
+⏱ *Duration:* ${data.serviceDurationMin} min
+💰 *Price:* $${data.servicePrice.toFixed(2)}
+
+📍 The Studio – Williamsburg, Brooklyn
+
+For changes or cancellations, please contact us at least 24 hours in advance. See you soon! 💈`
+
+      const dateShort    = format(parseISO(data.scheduledAt), 'M/d/yyyy')
+      const timePadded   = format(parseISO(data.scheduledAt), 'hh:mm a')
+
+      const smsMsg =
+`Hello ${data.customerName} 👋
+Your appointment has been successfully confirmed! ✅
+
+📖 *Booking Ref:* ${ref}
+📅 *Date:* ${dateShort}
+⏰ *Time:* ${timePadded}
+✂️ *Service:* ${data.serviceName}
+👨‍💼 *Staff:* ${data.staffName}
+⏳ *Duration:* ${data.serviceDurationMin} mins
+💲 *Price:* $${data.servicePrice.toFixed(2)}
+🏥 *Salon:* Studio Luxe Barber Lounge
+📍 *Location:* 127 Bedford Ave, Williamsburg, Brooklyn, NY 11211
+
+We look forward to seeing you. Reply to this message if you need to reschedule or have any questions!`
 
       // Insert WhatsApp log
-      await supabase.from('whatsapp_messages').insert({
+      const { error: waErr } = await supabase.from('whatsapp_messages').insert({
         tenant_id: TENANT_ID,
         phone_number: data.customerPhone,
         contact_name: data.customerName,
         direction: 'outbound',
-        message_body: confirmationMsg,
+        message_body: whatsappMsg,
         status: 'sent',
         timestamp: now,
       })
+      if (waErr) console.error('[addBooking] WhatsApp insert error:', waErr.message)
 
       // Insert SMS log
-      await supabase.from('sms_messages').insert({
+      const { error: smsErr } = await supabase.from('sms_messages').insert({
         tenant_id: TENANT_ID,
         phone_number: data.customerPhone,
         contact_name: data.customerName,
         direction: 'outbound',
-        message_body: confirmationMsg,
+        message_body: smsMsg,
         status: 'delivered',
         created_at: now,
       })
+      if (smsErr) console.error('[addBooking] SMS insert error:', smsErr.message)
 
       return booking
     } catch (err) {

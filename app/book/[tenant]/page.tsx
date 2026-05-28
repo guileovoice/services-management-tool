@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { format, addDays } from 'date-fns'
-import { Check, ChevronRight, Clock, User, Calendar, DollarSign, Scissors, Sparkles, ArrowRight, ExternalLink } from 'lucide-react'
+import { format, addDays, isToday, isBefore, startOfDay, parseISO } from 'date-fns'
+import { Check, ChevronRight, Clock, User, Calendar, Scissors, Sparkles, ExternalLink, MessageCircle, Phone } from 'lucide-react'
 import { cn, formatCurrency, getInitials, formatDuration } from '@/lib/utils'
 import { useStudioStore } from '@/lib/stores/studioStore'
 import toast from 'react-hot-toast'
@@ -26,6 +26,8 @@ const categoryColors: Record<string, { bg: string; text: string }> = {
   SPA: { bg: 'rgba(245, 158, 11, 0.15)', text: '#F59E0B' },
 }
 
+const TENANT_ID = '405b50b9-9504-4bda-bd38-7ce5b53e7aa0'
+
 export default function PublicBookingPage() {
   const { services, staff, addBooking, bootstrapData, isBootstrapped } = useStudioStore()
 
@@ -47,10 +49,27 @@ export default function PublicBookingPage() {
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [bookingRef, setBookingRef] = useState('')
 
+  const [bookedSlots, setBookedSlots] = useState<string[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+
   const categories = ['ALL', 'HAIR', 'COLOR', 'BEARD', 'NAILS', 'SPA']
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i))
-  
-  const timeSlots = ['9:00 AM', '10:30 AM', '12:00 PM', '2:00 PM', '3:30 PM', '5:00 PM']
+  // Show today + next 13 days (2-week window), locking past days
+  const weekDays = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i))
+
+  // Generate 30-minute slots from 9:00 AM to 7:00 PM
+  const generateTimeSlots = (): string[] => {
+    const slots: string[] = []
+    for (let h = 9; h < 19; h++) {
+      for (const m of [0, 30]) {
+        const hour12 = h > 12 ? h - 12 : h === 0 ? 12 : h
+        const ampm = h < 12 ? 'AM' : 'PM'
+        const label = `${hour12}:${m === 0 ? '00' : '30'} ${ampm}`
+        slots.push(label)
+      }
+    }
+    return slots
+  }
+  const allTimeSlots = generateTimeSlots()
 
   const filteredServices = selectedCategory === 'ALL' 
     ? services 
@@ -70,9 +89,67 @@ export default function PublicBookingPage() {
     setStep(2)
   }
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = async (date: Date) => {
     setSelectedDate(date)
     setSelectedTime(null)
+    if (!selectedStaff) return
+    setLoadingSlots(true)
+    try {
+      // Use YYYY-MM-DD in LOCAL timezone to query the API
+      const y = date.getFullYear()
+      const mo = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${y}-${mo}-${d}`
+
+      const res = await fetch(
+        `/api/bookings/check-availability?staff_id=${selectedStaff.id}&date=${dateStr}&tenant_id=${TENANT_ID}`
+      )
+      const json = await res.json()
+      const bookings: { scheduled_at: string; service_duration_min: number }[] = json.bookings || []
+
+      // Block every 30-min slot label that overlaps any existing booking
+      const blocked: string[] = []
+      bookings.forEach((b) => {
+        const start = new Date(b.scheduled_at)   // JS parses ISO → local
+        const end   = new Date(start.getTime() + b.service_duration_min * 60000)
+        for (let h = 9; h < 19; h++) {
+          for (const m of [0, 30]) {
+            const slotStart = new Date(date)
+            slotStart.setHours(h, m, 0, 0)           // local hours
+            const slotEnd = new Date(slotStart.getTime() + 30 * 60000)
+            if (slotStart < end && slotEnd > start) {
+              const hour12 = h > 12 ? h - 12 : h
+              const ampm   = h < 12 ? 'AM' : 'PM'
+              blocked.push(`${hour12}:${m === 0 ? '00' : '30'} ${ampm}`)
+            }
+          }
+        }
+      })
+      setBookedSlots(blocked)
+    } catch {
+      setBookedSlots([])
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const isSlotAvailable = (time: string): boolean => {
+    // Block already booked slots
+    if (bookedSlots.includes(time)) return false
+    // Block past slots if selected date is today
+    if (selectedDate && isToday(selectedDate)) {
+      const parseTime = (t: string) => {
+        const [h, m] = t.match(/(\d+):(\d+)/)?.slice(1).map(Number) || [9, 0]
+        const isPM = t.toLowerCase().includes('pm')
+        const hour = isPM && h < 12 ? h + 12 : h
+        return { hour, minute: m }
+      }
+      const { hour, minute } = parseTime(time)
+      const slotDate = new Date(selectedDate)
+      slotDate.setHours(hour, minute, 0, 0)
+      if (isBefore(slotDate, new Date())) return false
+    }
+    return true
   }
 
   const handleTimeSelect = (time: string) => {
@@ -86,36 +163,65 @@ export default function PublicBookingPage() {
       return
     }
 
-    const parseTime = (timeStr: string) => {
-      const [h, m] = timeStr.match(/(\d+):(\d+)/)?.slice(1).map(Number) || [9, 0]
-      const isPM = timeStr.toLowerCase().includes('pm')
-      const hour = isPM && h < 12 ? h + 12 : h
-      return { hour, minute: m }
-    }
-    const { hour, minute } = parseTime(selectedTime)
-    const scheduledAt = new Date(selectedDate)
-    scheduledAt.setHours(hour, minute, 0, 0)
-    const endsAt = new Date(scheduledAt.getTime() + selectedService.durationMin * 60000)
+    // --- Unambiguous local → UTC datetime construction ---
+    // Extract local date components from the date chip (selectedDate is local midnight)
+    const year  = selectedDate.getFullYear()
+    const month = selectedDate.getMonth()   // 0-based
+    const day   = selectedDate.getDate()
 
-    const booking = await addBooking({
-      customerName,
-      customerPhone,
-      customerEmail,
-      staffId: selectedStaff.id,
-      staffName: selectedStaff.name,
-      serviceId: selectedService.id,
-      serviceName: selectedService.name,
-      serviceDurationMin: selectedService.durationMin,
-      servicePrice: selectedService.price,
-      scheduledAt: scheduledAt.toISOString(),
-      endsAt: endsAt.toISOString(),
-      channel: 'WEB',
-      notes,
-    })
-    if (booking) {
-      setBookingRef(booking.bookingRef)
+    // Parse the selected slot label to 24h values
+    const timeMatch = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i)
+    if (!timeMatch) { toast.error('Invalid time selected'); return }
+    let hour24 = parseInt(timeMatch[1], 10)
+    const min  = parseInt(timeMatch[2], 10)
+    const ampm = timeMatch[3].toUpperCase()
+    if (ampm === 'PM' && hour24 < 12) hour24 += 12
+    if (ampm === 'AM' && hour24 === 12) hour24 = 0
+
+    // Build Date using LOCAL components — JavaScript will convert to UTC correctly via .toISOString()
+    const scheduledAtDate = new Date(year, month, day, hour24, min, 0, 0)
+
+    // Guard: must not be in the past
+    if (scheduledAtDate.getTime() < Date.now()) {
+      toast.error('Selected time is in the past. Please choose a future slot.')
+      return
+    }
+
+    const scheduledAtISO = scheduledAtDate.toISOString()
+    const endsAtISO      = new Date(scheduledAtDate.getTime() + selectedService.durationMin * 60000).toISOString()
+
+    try {
+      const res = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName,
+          customerPhone,
+          customerEmail: customerEmail || undefined,
+          staffId:            selectedStaff.id,
+          staffName:          selectedStaff.name,
+          serviceId:          selectedService.id,
+          serviceName:        selectedService.name,
+          serviceDurationMin: selectedService.durationMin,
+          servicePrice:       selectedService.price,
+          scheduledAt:        scheduledAtISO,
+          endsAt:             endsAtISO,
+          channel: 'WEB',
+          notes,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error || 'Failed to create booking')
+        return
+      }
+
+      setBookingRef(json.ref)
       setIsConfirmed(true)
       toast.success('Booking confirmed!')
+    } catch (err) {
+      toast.error('Network error — please try again.')
     }
   }
 
@@ -150,49 +256,66 @@ export default function PublicBookingPage() {
           >
             <Check size={40} className="text-emerald-400" />
           </motion.div>
-          
-          <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
-          <p className="text-text-secondary mb-6">Your appointment has been scheduled.</p>
-          
-          <div className="bg-surface2 rounded-xl p-4 mb-6 text-left">
-            <div className="font-mono text-sm text-text-muted mb-2">{bookingRef}</div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-text-muted">Service</span>
-                <span className="font-medium">{selectedService?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Staff</span>
-                <span className="font-medium">{selectedStaff?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Date & Time</span>
-                <span className="font-medium">
-                  {selectedDate && format(selectedDate, 'MMM d, yyyy')} at {selectedTime}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Price</span>
-                <span className="font-medium">{formatCurrency(selectedService?.price || 0)}</span>
-              </div>
+
+          <h1 className="text-3xl font-bold mb-1">Booking Confirmed! 🎉</h1>
+          <p className="text-text-secondary mb-6">Your appointment has been scheduled successfully.</p>
+
+          {/* Booking Reference */}
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-4 py-2 mb-6">
+            <span className="text-xs text-text-muted">Booking Ref:</span>
+            <span className="font-mono font-bold text-primary">{bookingRef}</span>
+          </div>
+
+          {/* Summary Card */}
+          <div className="bg-surface2 rounded-xl p-5 mb-5 text-left space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-text-muted flex items-center gap-1.5"><Scissors size={14} /> Service</span>
+              <span className="font-semibold">{selectedService?.name}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-text-muted flex items-center gap-1.5"><User size={14} /> Stylist</span>
+              <span className="font-semibold">{selectedStaff?.name}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-text-muted flex items-center gap-1.5"><Calendar size={14} /> Date & Time</span>
+              <span className="font-semibold">
+                {selectedDate && format(selectedDate, 'EEE, MMM d yyyy')} · {selectedTime}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-text-muted flex items-center gap-1.5"><Clock size={14} /> Duration</span>
+              <span className="font-semibold">{formatDuration(selectedService?.durationMin || 0)}</span>
+            </div>
+            <div className="border-t border-border pt-3 flex justify-between">
+              <span className="font-semibold">Total</span>
+              <span className="font-bold text-xl text-primary">{formatCurrency(selectedService?.price || 0)}</span>
             </div>
           </div>
 
-          <p className="text-sm text-text-muted mb-6">
-            Confirmation sent to {customerPhone} via WhatsApp
-          </p>
+          {/* Notifications sent */}
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-6 text-left">
+            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-2">Confirmations Sent</p>
+            <div className="flex items-center gap-2 text-sm text-text-secondary mb-1">
+              <MessageCircle size={14} className="text-emerald-400" />
+              WhatsApp → {customerPhone}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <Phone size={14} className="text-emerald-400" />
+              SMS → {customerPhone}
+            </div>
+          </div>
 
           <div className="space-y-3">
-            <button 
+            <button
               onClick={() => window.open(`https://calendar.google.com`, '_blank')}
-              className="w-full py-3 bg-surface2 hover:bg-surface3 border border-border rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-surface2 hover:bg-surface3 border border-border rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium"
             >
-              <Calendar size={18} />
+              <Calendar size={16} />
               Add to Google Calendar
             </button>
-            <button 
+            <button
               onClick={resetBooking}
-              className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition-colors"
+              className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors"
             >
               Book Another Appointment
             </button>
@@ -402,46 +525,59 @@ export default function PublicBookingPage() {
 
               {/* Date Picker */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                {weekDays.map((day, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleDateSelect(day)}
-                    className={cn(
-                      'flex-shrink-0 w-16 py-3 rounded-xl text-center transition-colors',
-                      selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-                        ? 'bg-primary text-white'
-                        : 'bg-surface hover:bg-surface2'
-                    )}
-                  >
-                    <div className="text-xs opacity-70">{format(day, 'EEE')}</div>
-                    <div className="text-lg font-bold">{format(day, 'd')}</div>
-                  </button>
-                ))}
+                {weekDays.map((day, i) => {
+                  const isPast = isBefore(startOfDay(day), startOfDay(new Date()))
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => !isPast && handleDateSelect(day)}
+                      disabled={isPast}
+                      className={cn(
+                        'flex-shrink-0 w-16 py-3 rounded-xl text-center transition-colors',
+                        isPast
+                          ? 'bg-surface2 text-text-muted opacity-40 cursor-not-allowed'
+                          : selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+                          ? 'bg-primary text-white'
+                          : 'bg-surface hover:bg-surface2 border border-border'
+                      )}
+                    >
+                      <div className="text-xs opacity-70">{format(day, 'EEE')}</div>
+                      <div className="text-lg font-bold">{format(day, 'd')}</div>
+                      {isToday(day) && <div className="text-[9px] opacity-70">TODAY</div>}
+                    </button>
+                  )
+                })}
               </div>
 
               {/* Time Slots */}
               {selectedDate && (
-                <div className="grid grid-cols-2 gap-3">
-                  {timeSlots.map((time) => {
-                    const isAvailable = Math.random() > 0.3
-                    return (
-                      <button
-                        key={time}
-                        onClick={() => isAvailable && handleTimeSelect(time)}
-                        disabled={!isAvailable}
-                        className={cn(
-                          'py-4 rounded-xl text-center font-medium transition-colors',
-                          selectedTime === time
-                            ? 'bg-primary text-white'
-                            : isAvailable
-                            ? 'bg-surface hover:bg-surface2 border border-border'
-                            : 'bg-surface2 text-text-muted cursor-not-allowed opacity-50'
-                        )}
-                      >
-                        {time}
-                      </button>
-                    )
-                  })}
+                <div>
+                  {loadingSlots ? (
+                    <div className="text-center py-8 text-text-muted text-sm">Checking availability...</div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-3">
+                      {allTimeSlots.map((time) => {
+                        const available = isSlotAvailable(time)
+                        return (
+                          <button
+                            key={time}
+                            onClick={() => available && handleTimeSelect(time)}
+                            disabled={!available}
+                            className={cn(
+                              'py-3 rounded-xl text-center text-sm font-medium transition-colors',
+                              selectedTime === time
+                                ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                                : available
+                                ? 'bg-surface hover:bg-surface2 border border-border hover:border-primary/40'
+                                : 'bg-surface2 text-text-muted cursor-not-allowed opacity-40'
+                            )}
+                          >
+                            {time}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
