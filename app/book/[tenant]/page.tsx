@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, addDays, isToday, isBefore, startOfDay, parseISO } from 'date-fns'
 import { Check, ChevronRight, Clock, User, Calendar, Scissors, Sparkles, ExternalLink, MessageCircle, Phone } from 'lucide-react'
-import { cn, formatCurrency, getInitials, formatDuration } from '@/lib/utils'
+import { cn, formatCurrency, getInitials, formatDuration, bookingDateTime as bdt } from '@/lib/utils'
 import { useStudioStore } from '@/lib/stores/studioStore'
 import toast from 'react-hot-toast'
 
@@ -105,12 +105,12 @@ export default function PublicBookingPage() {
         `/api/bookings/check-availability?staff_id=${selectedStaff.id}&date=${dateStr}&tenant_id=${TENANT_ID}`
       )
       const json = await res.json()
-      const bookings: { scheduled_at: string; service_duration_min: number }[] = json.bookings || []
+      const bookings: { date: string; time: string; service_duration_min: number }[] = json.bookings || []
 
       // Block every 30-min slot label that overlaps any existing booking
       const blocked: string[] = []
       bookings.forEach((b) => {
-        const start = new Date(b.scheduled_at)   // JS parses ISO → local
+        const start = bdt(b.date, b.time)  // local datetime
         const end   = new Date(start.getTime() + b.service_duration_min * 60000)
         for (let h = 9; h < 19; h++) {
           for (const m of [0, 30]) {
@@ -204,8 +204,8 @@ export default function PublicBookingPage() {
           serviceName:        selectedService.name,
           serviceDurationMin: selectedService.durationMin,
           servicePrice:       selectedService.price,
-          scheduledAt:        scheduledAtISO,
-          endsAt:             endsAtISO,
+          date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+          time: `${String(hour24).padStart(2, '0')}:${String(min).padStart(2, '0')}`,
           channel: 'WEB',
           notes,
         }),

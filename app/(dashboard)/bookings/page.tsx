@@ -40,8 +40,8 @@ export default function BookingsPage() {
   const days = eachDayOfInterval({ start: calStart, end: calEnd })
 
   const dayBookings = bookings.filter(b => {
-    const d = parseISO(b.scheduledAt)
-    return isSameDay(d, selectedDay)
+    const d = format(selectedDay, 'yyyy-MM-dd')
+    return b.date === d
   })
 
   const filteredBookings = dayBookings.filter(b => {
@@ -52,16 +52,14 @@ export default function BookingsPage() {
   })
 
   function getDayBookings(date: Date) {
-    return bookings.filter(b => {
-      const d = parseISO(b.scheduledAt)
-      return isSameDay(d, date)
-    })
+    const d = format(date, 'yyyy-MM-dd')
+    return bookings.filter(b => b.date === d)
   }
 
   const completedCount = bookings.filter(b => b.status === 'COMPLETED').length
   const noShowCount = bookings.filter(b => b.status === 'NO_SHOW').length
   const cancelledCount = bookings.filter(b => b.status === 'CANCELLED').length
-  const thisMonthBookings = bookings.filter(b => new Date(b.scheduledAt).getMonth() === new Date().getMonth()).length
+  const thisMonthBookings = bookings.filter(b => (b.date ?? '').startsWith(format(new Date(), 'yyyy-MM'))).length
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -205,7 +203,7 @@ export default function BookingsPage() {
                           'bg-surface2 text-text-muted'
                         )}
                       >
-                        {b.customerName.split(' ')[0]} {format(parseISO(b.scheduledAt), 'h:mm a')}
+                        {b.customerName.split(' ')[0]} {b.time}
                       </div>
                     ))}
                     {dayBks.length > 3 && (
@@ -313,8 +311,8 @@ export default function BookingsPage() {
                     <div className="font-medium">{booking.staffName}</div>
                   </td>
                   <td className="px-3 sm:px-4 py-3">
-                    <div className="font-medium text-sm">{format(parseISO(booking.scheduledAt), 'MMM d, yyyy')}</div>
-                    <div className="text-xs text-text-muted">{format(parseISO(booking.scheduledAt), 'h:mm a')}</div>
+                    <div className="font-medium text-sm">{booking.date}</div>
+                    <div className="text-xs text-text-muted">{booking.time}</div>
                   </td>
                   <td className="px-3 sm:px-4 py-3 font-semibold text-sm">
                     ${booking.servicePrice}
@@ -436,7 +434,7 @@ export default function BookingsPage() {
                         <div className="font-medium">{booking.staffName}</div>
                       </td>
                       <td className="px-3 sm:px-4 py-3 text-sm">
-                        <div className="font-medium">{format(parseISO(booking.scheduledAt), 'h:mm a')}</div>
+                        <div className="font-medium">{booking.time}</div>
                       </td>
                       <td className="px-3 sm:px-4 py-3 font-semibold text-sm">
                         ${booking.servicePrice}

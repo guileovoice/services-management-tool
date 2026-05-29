@@ -6,6 +6,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Construct a JS Date from a booking's separate date + time columns.
+ * Handles both "HH:MM" and "HH:MM:SS" (Postgres TIME type) formats safely.
+ */
+export function bookingDateTime(date: string, time: string): Date {
+  // Slice to HH:MM to avoid "HH:MM:SS:00" if Postgres returns seconds
+  const hhmm = (time ?? '00:00').slice(0, 5)
+  return new Date(`${date}T${hhmm}:00`)
+}
+
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

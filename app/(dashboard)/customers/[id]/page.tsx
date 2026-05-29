@@ -145,8 +145,8 @@ export default function CustomerDetailPage() {
               {customerBookings.slice(0, 5).map((booking, i) => (
                 <div key={booking.id} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-surface2 rounded-lg">
                   <div className="text-center min-w-0">
-                    <div className="text-xs sm:text-sm font-medium">{format(parseISO(booking.scheduledAt), 'MMM')}</div>
-                    <div className="text-xl sm:text-2xl font-bold">{format(parseISO(booking.scheduledAt), 'd')}</div>
+                    <div className="text-xs sm:text-sm font-medium">{booking.date.slice(5, 7)}</div>
+                    <div className="text-xl sm:text-2xl font-bold">{booking.date.slice(8, 10)}</div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{booking.serviceName}</div>

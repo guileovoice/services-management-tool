@@ -18,22 +18,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing staff_id, date, or tenant_id' }, { status: 400 })
   }
 
-  // Because bookings are stored in UTC but the date string is in the user's LOCAL timezone,
-  // we expand the search by ±1 day so we never miss bookings across timezone boundaries.
-  // The client JS (running in local timezone) will compute exact slot overlaps.
-  const localDate  = new Date(`${date}T00:00:00.000Z`)
-  const searchFrom = new Date(localDate.getTime() - 24 * 60 * 60 * 1000)  // day before
-  const searchTo   = new Date(localDate.getTime() + 2 * 24 * 60 * 60 * 1000) // day after
+
 
   const supabase = getAdminClient()
   const { data, error } = await supabase
     .from('bookings')
-    .select('scheduled_at, service_duration_min, booking_ref, customer_name, service_name')
+    .select('date, time, service_duration_min, booking_ref, customer_name, service_name')
     .eq('tenant_id', tenantId)
     .eq('staff_id', staffId)
     .neq('status', 'CANCELLED')
-    .gte('scheduled_at', searchFrom.toISOString())
-    .lte('scheduled_at', searchTo.toISOString())
+    .eq('date', date)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

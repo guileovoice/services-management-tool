@@ -45,11 +45,11 @@ import {
 } from 'lucide-react'
 import { useCalendarStore } from '@/lib/stores/calendarStore'
 import { useStudioStore } from '@/lib/stores/studioStore'
-import { cn, formatTime, getInitials, statusColors, categoryColors } from '@/lib/utils'
+import { cn, formatCurrency, formatDuration, getInitials, categoryColors, bookingDateTime as bdt } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
-const channelIcons: Record<string, React.ElementType> = {
+const channelIcons = {
   VOICE: Phone,
   WHATSAPP: MessageSquare,
   SMS: MessageSquare,
@@ -166,8 +166,8 @@ export default function CalendarPage() {
   // Bookings filtered for active date/week/month
   const dayBookings = useMemo(() => {
     return allBookings.filter(booking => {
-      const bookingDate = parseISO(booking.scheduledAt)
-      return isSameDay(bookingDate, selectedDate)
+      const dateStr = format(selectedDate, 'yyyy-MM-dd')
+      return booking.date === dateStr
     })
   }, [selectedDate, allBookings])
 
@@ -185,7 +185,7 @@ export default function CalendarPage() {
 
   // Get position details for booking event cards on Day View
   const getBookingPosition = (booking: typeof allBookings[0]) => {
-    const start = parseISO(booking.scheduledAt)
+    const start = bdt(booking.date, booking.time)
     const startMinutes = start.getHours() * 60 + start.getMinutes()
     const top = ((startMinutes - 9 * 60) / 15) * 32
     const height = (booking.serviceDurationMin / 15) * 32
@@ -264,15 +264,17 @@ export default function CalendarPage() {
 
     setIsSubmitting(true)
     try {
-      // Parse scheduled time
+      // Parse date and time
       const timeStrClean = bookingTimeInput.replace(/\s+/g, ' ')
       const dateParsed = parse(`${bookingDateInput} ${timeStrClean}`, 'yyyy-MM-dd h:mm a', new Date())
-      
+
       if (isNaN(dateParsed.getTime())) {
         throw new Error('Invalid date or time format selected.')
       }
 
-      const endsAtParsed = addMinutes(dateParsed, serviceObj.durationMin)
+      // Build date (YYYY-MM-DD) and time (HH:MM) strings
+      const dateStr = bookingDateInput
+      const timeStr = `${String(dateParsed.getHours()).padStart(2, '0')}:${String(dateParsed.getMinutes()).padStart(2, '0')}`
 
       const result = await addBooking({
         customerName: custName,
@@ -284,8 +286,8 @@ export default function CalendarPage() {
         serviceName: serviceObj.name,
         serviceDurationMin: serviceObj.durationMin,
         servicePrice: serviceObj.price,
-        scheduledAt: dateParsed.toISOString(),
-        endsAt: endsAtParsed.toISOString(),
+        date: dateStr,
+        time: timeStr,
         channel: 'WALK_IN',
         notes: bookingNotes || undefined,
       })
@@ -532,7 +534,7 @@ export default function CalendarPage() {
           <div className="grid grid-cols-7 divide-x divide-border min-h-[600px] bg-background">
             {weekDays.map((day) => {
               const dateStr = format(day, 'yyyy-MM-dd')
-              const dayBookingsList = allBookings.filter(b => b.scheduledAt.startsWith(dateStr) && b.status !== 'CANCELLED')
+              const dayBookingsList = allBookings.filter(b => b.date === dateStr && b.status !== 'CANCELLED')
               const isDayToday = isToday(day)
 
               return (
@@ -571,7 +573,7 @@ export default function CalendarPage() {
                           <div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-bold text-text-muted font-mono">
-                                {format(parseISO(booking.scheduledAt), 'h:mm a')}
+                                {format(bdt(booking.date, booking.time), 'h:mm a')}
                               </span>
                               <span className="text-[10px] font-bold text-text-primary">${booking.servicePrice}</span>
                             </div>
@@ -620,7 +622,7 @@ export default function CalendarPage() {
             {/* Calendar Days */}
             {monthGridDays.map((day) => {
               const dateStr = format(day, 'yyyy-MM-dd')
-              const dayBookingsList = allBookings.filter(b => b.scheduledAt.startsWith(dateStr) && b.status !== 'CANCELLED')
+              const dayBookingsList = allBookings.filter(b => b.date === dateStr && b.status !== 'CANCELLED')
               const inCurrentMonth = isSameMonth(day, selectedDate)
               const isDayToday = isToday(day)
 
@@ -666,7 +668,7 @@ export default function CalendarPage() {
                           className="px-1.5 py-0.5 text-[9px] font-semibold text-text-primary rounded-md truncate border-l-2 bg-surface2/60 border-border/80 hover:bg-surface2 transition-all"
                           style={{ borderLeftColor: catColor?.bg || '#6C3CE1' }}
                         >
-                          {format(parseISO(booking.scheduledAt), 'h:mm a')} - {booking.customerName}
+                          {format(bdt(booking.date, booking.time), 'h:mm a')} - {booking.customerName}
                         </div>
                       )
                     })}
@@ -1030,7 +1032,7 @@ export default function CalendarPage() {
                   <div className="flex justify-between items-center py-2 border-b border-border/40 text-sm">
                     <span className="text-text-secondary flex items-center gap-1.5"><Calendar size={14} /> Date & Time</span>
                     <span className="font-semibold text-text-primary">
-                      {format(parseISO(selectedBooking.scheduledAt), 'MMM d, yyyy · h:mm a')}
+                      {format(bdt(selectedBooking.date, selectedBooking.time), 'MMM d, yyyy · h:mm a')}
                     </span>
                   </div>
                   

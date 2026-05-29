@@ -22,6 +22,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { formatCurrency, formatRelativeTime, getInitials } from '@/lib/utils'
 import Link from 'next/link'
 import { format, parseISO, isToday, subDays, addDays, startOfDay, endOfDay } from 'date-fns'
+import { bookingDateTime as bdt } from '@/lib/utils'
 
 export default function OverviewPage() {
   const { bookings, services, staff, leads, bootstrapData, retryBootstrap, isBootstrapped, isLoading, error } = useStudioStore()
@@ -57,8 +58,7 @@ export default function OverviewPage() {
 
   const rangeBookings = useMemo(() => {
     return bookings.filter(b => {
-      const d = b.scheduledAt.split('T')[0]
-      return d >= rangeStart && d <= rangeEnd
+      return b.date >= rangeStart && b.date <= rangeEnd
     })
   }, [bookings, rangeStart, rangeEnd])
 
@@ -66,8 +66,7 @@ export default function OverviewPage() {
     const ps = format(prevRangeStart, 'yyyy-MM-dd')
     const pe = format(prevRangeEnd, 'yyyy-MM-dd')
     return bookings.filter(b => {
-      const d = b.scheduledAt.split('T')[0]
-      return d >= ps && d <= pe
+      return b.date >= ps && b.date <= pe
     })
   }, [bookings, prevRangeStart, prevRangeEnd])
 
@@ -100,8 +99,12 @@ export default function OverviewPage() {
   const upcomingBookings = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd')
     return bookings
-      .filter(b => b.scheduledAt.startsWith(todayStr) && b.status !== 'CANCELLED')
-      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+      .filter(b => b.date === todayStr && b.status !== 'CANCELLED')
+      .sort((a, b) => {
+        const aTime = bdt(a.date, a.time).getTime()
+        const bTime = bdt(b.date, b.time).getTime()
+        return aTime - bTime
+      })
       .slice(0, 6)
   }, [bookings])
 
@@ -131,7 +134,7 @@ export default function OverviewPage() {
     let curr = start
     while (curr <= end) {
       const dateStr = format(curr, 'yyyy-MM-dd')
-      const dayBookings = bookings.filter(b => b.scheduledAt.startsWith(dateStr))
+      const dayBookings = bookings.filter(b => b.date === dateStr)
       const revenue = dayBookings.reduce((sum, b) => sum + b.servicePrice, 0)
       data.push({ date: format(curr, 'MMM d'), revenue, bookings: dayBookings.length })
       curr = addDays(curr, 1)
@@ -181,7 +184,7 @@ export default function OverviewPage() {
   const alerts = useMemo(() => {
     const result = []
     const heavyStaff = staff.filter(s => {
-      const todays = bookings.filter(b => b.staffId === s.id && b.scheduledAt.startsWith(format(new Date(), 'yyyy-MM-dd')))
+      const todays = bookings.filter(b => b.staffId === s.id && b.date === format(new Date(), 'yyyy-MM-dd'))
       return todays.length >= 4
     })
     heavyStaff.forEach(s => result.push({ id: s.id, text: `${s.name} has ${heavyStaff.filter(x => x.id === s.id).length} back-to-back bookings — no break scheduled`, type: 'warning' }))
@@ -331,7 +334,7 @@ export default function OverviewPage() {
               >
                 <div className="w-1 h-10 rounded-full bg-primary" />
                 <div className="text-sm font-mono text-text-muted w-16">
-                  {format(parseISO(booking.scheduledAt), 'h:mm a')}
+                  {format(bdt(booking.date, booking.time), 'h:mm a')}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{booking.customerName}</div>

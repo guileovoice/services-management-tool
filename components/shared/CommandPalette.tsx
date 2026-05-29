@@ -7,6 +7,7 @@ import { Search, Calendar, User, Clock, ArrowRight, X, FileText } from 'lucide-r
 import { useUIStore } from '@/lib/stores/uiStore'
 import { useStudioStore } from '@/lib/stores/studioStore'
 import { formatTime, formatDate } from '@/lib/utils'
+import { bookingDateTime as bdt } from '@/lib/utils'
 import { parseISO } from 'date-fns'
 
 export default function CommandPalette() {
@@ -17,8 +18,12 @@ export default function CommandPalette() {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const todayBookings = bookings
-    .filter(b => new Date(b.scheduledAt) >= new Date())
-    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+    .filter(b => (b.date ?? '') >= new Date().toISOString().split('T')[0])
+    .sort((a, b) => {
+      const aTime = bdt(a.date, a.time).getTime()
+      const bTime = bdt(b.date, b.time).getTime()
+      return aTime - bTime
+    })
     .slice(0, 5)
 
   useEffect(() => {
@@ -165,9 +170,9 @@ export default function CommandPalette() {
                         <div className="text-sm font-medium">{item.name}</div>
                       )}
                     </div>
-                    {'scheduledAt' in item && (
+                    {'date' in item && 'time' in item && (
                       <div className="text-xs text-text-muted">
-                        {formatTime(item.scheduledAt)} · {item.serviceName}
+                        {item.time} · {item.serviceName}
                       </div>
                     )}
                     {'totalBookings' in item && (

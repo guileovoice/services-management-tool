@@ -78,8 +78,8 @@ export interface Booking {
   serviceName: string
   serviceDurationMin: number
   servicePrice: number
-  scheduledAt: string
-  endsAt: string
+  date: string
+  time: string
   status: BookingStatus
   channel: Channel
   notes?: string

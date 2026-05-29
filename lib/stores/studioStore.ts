@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabaseClient'
 import type { Booking, Customer, Lead, StaffMember, Service, CallLog, BookingStatus, LeadStatus } from '@/lib/types'
-import { format, parseISO, startOfDay } from 'date-fns'
+import { format } from 'date-fns'
+import { bookingDateTime as bdt } from '@/lib/utils'
 
 const TENANT_ID = '405b50b9-9504-4bda-bd38-7ce5b53e7aa0'
 
@@ -36,8 +37,8 @@ interface StudioState {
     serviceName: string
     serviceDurationMin: number
     servicePrice: number
-    scheduledAt: string
-    endsAt: string
+    date: string
+    time: string
     channel: string
     notes?: string
   }) => Promise<Booking | null>
@@ -128,8 +129,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       const now = new Date().toISOString()
       const ref = 'STU-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0')
 
-      // 1. Lock yesterday and past dates
-      const bookingTime = new Date(data.scheduledAt)
+      // Build a full datetime from date + time for overlap checking
+      const bookingTime = bdt(data.date, data.time)
       const nowTime = new Date()
       if (bookingTime.getTime() < nowTime.getTime()) {
         throw new Error('Booking date and time cannot be in the past.')
@@ -139,22 +140,17 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       const newStart = bookingTime
       const newEnd = new Date(newStart.getTime() + data.serviceDurationMin * 60000)
 
-      // Use UTC day boundaries — scheduled_at is stored in UTC
-      const dayStartUTC = new Date(newStart)
-      dayStartUTC.setUTCHours(0, 0, 0, 0)
-
       const { data: overlapping } = await supabase
         .from('bookings')
-        .select('id, scheduled_at, service_duration_min')
+        .select('id, date, time, service_duration_min')
         .eq('tenant_id', TENANT_ID)
         .eq('staff_id', data.staffId)
         .neq('status', 'CANCELLED')
-        .gte('scheduled_at', dayStartUTC.toISOString())
-        .lt('scheduled_at', newEnd.toISOString())   // existing starts before new ends
+        .eq('date', data.date)
 
       if (overlapping && overlapping.length > 0) {
-        const conflict = overlapping.find((b: { scheduled_at: string; service_duration_min: number }) => {
-          const exStart = new Date(b.scheduled_at)
+        const conflict = overlapping.find((b: { date: string; time: string; service_duration_min: number }) => {
+          const exStart = bdt(b.date, b.time)
           const exEnd = new Date(exStart.getTime() + b.service_duration_min * 60000)
           return newStart < exEnd && newEnd > exStart
         })
@@ -196,8 +192,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
         service_name: data.serviceName,
         service_duration_min: data.serviceDurationMin,
         service_price: data.servicePrice,
-        scheduled_at: data.scheduledAt,
-        ends_at: data.endsAt,           // stored as text per schema
+        date: data.date,
+        time: data.time,
         status: 'CONFIRMED',
         channel: data.channel,
         notes: data.notes || null,
@@ -211,9 +207,10 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       // Update local Zustand state
       set(state => ({ bookings: [...state.bookings, booking] }))
 
-      // 3. Build rich confirmation messages
-      const dateFormatted = format(parseISO(data.scheduledAt), 'EEEE, MMMM d, yyyy')
-      const timeFormatted = format(parseISO(data.scheduledAt), 'h:mm a')
+      // 3. Build rich confirmation messages using date + time
+      const bookingDateTime = bdt(data.date, data.time)
+      const dateFormatted = format(bookingDateTime, 'EEEE, MMMM d, yyyy')
+      const timeFormatted = format(bookingDateTime, 'h:mm a')
 
       const whatsappMsg =
         `✅ *Booking Confirmed!*
@@ -232,8 +229,8 @@ Hi ${data.customerName}, your appointment is confirmed. Here are your details:
 
 For changes or cancellations, please contact us at least 24 hours in advance. See you soon! 💈`
 
-      const dateShort = format(parseISO(data.scheduledAt), 'M/d/yyyy')
-      const timePadded = format(parseISO(data.scheduledAt), 'hh:mm a')
+      const dateShort = format(bookingDateTime, 'M/d/yyyy')
+      const timePadded = format(bookingDateTime, 'hh:mm a')
 
       const smsMsg =
         `Hello ${data.customerName} 👋

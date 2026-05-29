@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { ArrowLeft, Phone, Mail, Calendar, MessageSquare, Clock, User, DollarSign, Check, Pencil, Trash2, X } from 'lucide-react'
 import { useStudioStore } from '@/lib/stores/studioStore'
-import { cn, formatCurrency, formatDuration, getInitials, statusColors } from '@/lib/utils'
+import { cn, formatCurrency, formatDuration, getInitials, statusColors, bookingDateTime as bdt } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 export default function BookingDetailPage() {
@@ -34,15 +34,17 @@ export default function BookingDetailPage() {
   const staffMember = allStaff.find(s => s.id === booking.staffId)
   const service = services.find(s => s.id === booking.serviceId)
 
+  const bookingDateTime = bdt(booking.date, booking.time)
+
   const timeline = [
     { label: 'Booking created', date: parseISO(booking.createdAt), detail: `via ${booking.channel} AI call` },
     { label: 'Confirmation sent', date: parseISO(booking.createdAt), detail: 'WhatsApp confirmation to customer' },
-    { label: '24h reminder sent', date: parseISO(booking.scheduledAt).getTime() - 24 * 60 * 60 * 1000, detail: 'Reminder message sent' },
-    { label: '2h reminder sent', date: parseISO(booking.scheduledAt).getTime() - 2 * 60 * 60 * 1000, detail: 'Final reminder SMS' },
+    { label: '24h reminder sent', date: new Date(bookingDateTime.getTime() - 24 * 60 * 60 * 1000), detail: 'Reminder message sent' },
+    { label: '2h reminder sent', date: new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000), detail: 'Final reminder SMS' },
   ]
 
-  if (booking.status === 'COMPLETED' && booking.endsAt) {
-    timeline.push({ label: 'Appointment completed', date: parseISO(booking.endsAt), detail: `Completed by ${booking.staffName}` })
+  if (booking.status === 'COMPLETED') {
+    timeline.push({ label: 'Appointment completed', date: bookingDateTime, detail: `Completed by ${booking.staffName}` })
   }
 
   return (
@@ -126,14 +128,14 @@ export default function BookingDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <span className="text-text-muted text-xs sm:text-sm">Date</span>
-                <div className="font-medium mt-1 text-sm sm:text-base">{format(parseISO(booking.scheduledAt), 'EEEE, MMMM d, yyyy')}</div>
+                <div className="font-medium mt-1 text-sm sm:text-base">{booking.date}</div>
               </div>
               <div>
                 <span className="text-text-muted text-xs sm:text-sm">Time</span>
-                <div className="font-medium mt-1 text-sm sm:text-base">
-                  {format(parseISO(booking.scheduledAt), 'h:mm a')}{booking.endsAt ? ` — ${format(parseISO(booking.endsAt), 'h:mm a')}` : ''}
-                  <span className="text-text-muted text-sm ml-2">({formatDuration(booking.serviceDurationMin)})</span>
-                </div>
+                  <div className="font-medium mt-1 text-sm sm:text-base">
+                    {booking.time}
+                    <span className="text-text-muted text-sm ml-2">({formatDuration(booking.serviceDurationMin)})</span>
+                  </div>
               </div>
               <div>
                 <span className="text-text-muted text-xs sm:text-sm">Staff</span>

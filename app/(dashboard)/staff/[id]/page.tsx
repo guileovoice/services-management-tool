@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { format, parseISO, addDays } from 'date-fns'
 import { ArrowLeft, Star, Calendar, DollarSign, Edit, ExternalLink, Check } from 'lucide-react'
 import { useStudioStore } from '@/lib/stores/studioStore'
-import { cn, formatCurrency, formatDuration, getInitials, statusColors } from '@/lib/utils'
+import { cn, formatCurrency, formatDuration, getInitials, statusColors, bookingDateTime as bdt } from '@/lib/utils'
 
 function getDayName(date: Date): string {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
@@ -110,7 +110,7 @@ export default function StaffDetailPage() {
                 const hours = member.workingHours[dayName]
                 const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
                 const dayBookings = bookings.filter(b => {
-                  const bDate = parseISO(b.scheduledAt)
+                  const bDate = bdt(b.date, b.time)
                   return b.staffId === member.id && format(bDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
                 })
                 
@@ -162,8 +162,8 @@ export default function StaffDetailPage() {
                     <div className="text-xs sm:text-sm text-text-secondary truncate">{booking.serviceName}</div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xs sm:text-sm">{format(parseISO(booking.scheduledAt), 'MMM d')}</div>
-                    <div className="text-xs text-text-muted">{format(parseISO(booking.scheduledAt), 'h:mm a')}</div>
+                    <div className="text-xs sm:text-sm">{booking.date.slice(5).replace('-', '/')}</div>
+                    <div className="text-xs text-text-muted">{booking.time}</div>
                   </div>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
                     cn(statusColors[booking.status])

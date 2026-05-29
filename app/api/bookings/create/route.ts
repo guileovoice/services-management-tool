@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { format, parseISO } from 'date-fns'
+import { bookingDateTime as bdt } from '@/lib/utils'
 
 const TENANT_ID = '405b50b9-9504-4bda-bd38-7ce5b53e7aa0'
 
@@ -27,13 +28,13 @@ export async function POST(req: NextRequest) {
       serviceName,
       serviceDurationMin,
       servicePrice,
-      scheduledAt,   // ISO string from client — already UTC-correct
-      endsAt,
+      date,   // 'YYYY-MM-DD' string
+      time,   // 'HH:MM' string (24h)
       channel = 'WEB',
       notes,
     } = body
 
-    if (!customerName || !customerPhone || !staffId || !serviceId || !scheduledAt) {
+    if (!customerName || !customerPhone || !staffId || !serviceId || !date || !time) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString()
 
     // 1. Validate: not in the past
-    const bookingTime = new Date(scheduledAt)
+    const bookingTime = bdt(date, time)
     if (bookingTime.getTime() < Date.now()) {
       return NextResponse.json(
         { error: 'Booking date and time cannot be in the past.' },
@@ -56,28 +57,27 @@ export async function POST(req: NextRequest) {
     const dayStart = new Date(newStart)
     dayStart.setUTCHours(0, 0, 0, 0)
 
-    // 2. Check overlapping bookings for same staff (server-side, service role bypasses RLS)
+    // 2. Check overlapping bookings for same staff on the same date
     const { data: existing, error: checkErr } = await supabase
       .from('bookings')
-      .select('id, scheduled_at, service_duration_min, customer_name, service_name')
+      .select('id, date, time, service_duration_min, customer_name, service_name')
       .eq('tenant_id', TENANT_ID)
       .eq('staff_id', staffId)
       .neq('status', 'CANCELLED')
-      .gte('scheduled_at', dayStart.toISOString())
-      .lt('scheduled_at', newEnd.toISOString())
+      .eq('date', date)
 
     if (checkErr) {
       return NextResponse.json({ error: checkErr.message }, { status: 500 })
     }
 
     if (existing && existing.length > 0) {
-      const conflict = existing.find((b: { scheduled_at: string; service_duration_min: number }) => {
-        const exStart = new Date(b.scheduled_at)
+      const conflict = existing.find((b: { date: string; time: string; service_duration_min: number }) => {
+        const exStart = bdt(b.date, b.time)
         const exEnd   = new Date(exStart.getTime() + b.service_duration_min * 60000)
         return newStart < exEnd && newEnd > exStart
       })
       if (conflict) {
-        const conflictTyped = conflict as { customer_name: string; service_name: string; scheduled_at: string }
+        const conflictTyped = conflict as { customer_name: string; service_name: string; date: string; time: string }
         return NextResponse.json(
           {
             error: `This slot is already booked (${conflictTyped.customer_name} – ${conflictTyped.service_name}). Please choose another time.`,
@@ -131,8 +131,8 @@ export async function POST(req: NextRequest) {
         service_name: serviceName,
         service_duration_min: serviceDurationMin,
         service_price: servicePrice,
-        scheduled_at: scheduledAt,
-        ends_at: endsAt,
+        date,
+        time,
         status: 'CONFIRMED',
         channel,
         notes: notes || null,
@@ -145,8 +145,9 @@ export async function POST(req: NextRequest) {
     if (bookErr) return NextResponse.json({ error: bookErr.message }, { status: 500 })
 
     // 5. Build rich confirmation messages
-    const dateFormatted = format(parseISO(scheduledAt), 'EEEE, MMMM d, yyyy')
-    const timeFormatted = format(parseISO(scheduledAt), 'h:mm a')
+    const bookingDateTime = new Date(`${date}T${time}:00`)
+    const dateFormatted = format(bookingDateTime, 'EEEE, MMMM d, yyyy')
+    const timeFormatted = format(bookingDateTime, 'h:mm a')
 
     const whatsappMsg =
 `✅ *Booking Confirmed!*
@@ -165,8 +166,8 @@ Hi ${customerName}, your appointment is confirmed. Here are your details:
 
 For changes or cancellations, please contact us at least 24 hours in advance. See you soon! 💈`
 
-    const dateShort    = format(parseISO(scheduledAt), 'M/d/yyyy')
-    const timePadded   = format(parseISO(scheduledAt), 'hh:mm a')
+    const dateShort    = format(bookingDateTime, 'M/d/yyyy')
+    const timePadded   = format(bookingDateTime, 'hh:mm a')
 
     const smsMsg =
 `Hello ${customerName} 👋

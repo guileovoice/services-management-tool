@@ -5,10 +5,12 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Calendar, Clock, Star, MapPin, Phone, Mail, Check, Scissors, Palette, Sparkles, Heart, Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
-import { cn, formatCurrency, formatDuration, getInitials } from '@/lib/utils'
+import { cn, formatCurrency, formatDuration, getInitials, bookingDateTime as bdt } from '@/lib/utils'
 import { format, addDays, isToday, isBefore } from 'date-fns'
 import { useStudioStore } from '@/lib/stores/studioStore'
 import toast from 'react-hot-toast'
+
+const TENANT_ID = '405b50b9-9504-4bda-bd38-7ce5b53e7aa0'
 
 export default function HomePage() {
   const { services, staff, addBooking, bootstrapData, isBootstrapped } = useStudioStore()
@@ -101,14 +103,14 @@ export default function HomePage() {
       const dateStr = `${y}-${mo}-${d}`
 
       const res = await fetch(
-        `/api/bookings/check-availability?staff_id=${selectedStaff.id}&date=${dateStr}&tenant_id=default`
+        `/api/bookings/check-availability?staff_id=${selectedStaff.id}&date=${dateStr}&tenant_id=${TENANT_ID}`
       )
       const json = await res.json()
-      const bookings: { scheduled_at: string; service_duration_min: number }[] = json.bookings || []
+      const bookings: { date: string; time: string; service_duration_min: number }[] = json.bookings || []
 
       const blocked: string[] = []
       bookings.forEach((b) => {
-        const start = new Date(b.scheduled_at)
+        const start = bdt(b.date, b.time)
         const end = new Date(start.getTime() + b.service_duration_min * 60000)
         for (let h = 9; h < 19; h++) {
           for (const m of [0, 30]) {
@@ -147,9 +149,9 @@ export default function HomePage() {
       return { hour, minute: m }
     }
     const { hour, minute } = parseTime(selectedTime)
-    const scheduledAt = new Date(selectedDate)
-    scheduledAt.setHours(hour, minute, 0, 0)
-    const endsAt = new Date(scheduledAt.getTime() + selectedService.durationMin * 60000)
+    const year  = selectedDate.getFullYear()
+    const month = selectedDate.getMonth()
+    const day   = selectedDate.getDate()
 
     const booking = await addBooking({
       customerName,
@@ -161,8 +163,8 @@ export default function HomePage() {
       serviceName: selectedService.name,
       serviceDurationMin: selectedService.durationMin,
       servicePrice: selectedService.price,
-      scheduledAt: scheduledAt.toISOString(),
-      endsAt: endsAt.toISOString(),
+      date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      time: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
       channel: 'WEB',
     })
     if (booking) {
